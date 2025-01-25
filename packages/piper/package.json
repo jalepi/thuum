@@ -1,0 +1,43 @@
+{
+  "name": "@thuum/piper",
+  "version": "0.0.1",
+  "description": "Piper brings 'pipe' features and function chaining",
+  "keywords": [],
+  "author": "Jalepi",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalepi/thuum.git",
+    "directory": "packages/piper"
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+  },
+  "devDependencies": {
+    "tslib": "catalog:ts",
+    "typescript": "catalog:ts"
+  },
+  "type": "module",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ]
+}
