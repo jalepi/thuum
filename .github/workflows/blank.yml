@@ -51,4 +51,4 @@ jobs:
       - name: Print all changed files
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: node print-changed-files.mjs
+        run: pnpm run test

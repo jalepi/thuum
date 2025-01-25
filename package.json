@@ -1,0 +1,12 @@
+{
+  "name": "thuum",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./print-changed-files.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
