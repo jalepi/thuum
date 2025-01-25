@@ -33,3 +33,9 @@ Add scripts in `package.json`:
   "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'"
 }
 ```
+
+Catalog `lint` packages
+
+```
+pnpx codemod pnpm/catalog
+```
