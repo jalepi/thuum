@@ -1,0 +1,9 @@
+{
+  "extends": ["../../tsconfig.base.json"],
+  "compilerOptions": {
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "outDir": "./dist/esm"
+  },
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "**/*.bench.ts", "dist", "node_modules"]
+}
