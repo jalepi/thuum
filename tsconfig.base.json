@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "ES2021.String"],
+    "resolveJsonModule": true,
+    "module": "ES2020",
+    "target": "ES6",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true
+  },
+  "include": ["${configDir}/src"],
+  "exclude": ["${configDir/node_modules}", "${configDir}/dist"]
+}

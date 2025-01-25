@@ -39,3 +39,32 @@ Catalog `lint` packages
 ```
 pnpx codemod pnpm/catalog
 ```
+
+### Typescript
+
+Install `typescript` and `tslib`
+
+```
+pnpm install -w -D typescript tslib
+```
+
+Create `tsconfig.base.json`
+
+### Vitest
+
+Install packages into workspace
+
+```
+pnpm install -w -D vitest @vitest/coverage-v8 happy-dom
+```
+
+Add `vitest.workspace.mjs` and `vitest.config.mjs` files to workspace
+
+Add scripts in `package.json`
+
+```json
+"scripts": {
+  "test": "vitest",
+  "test:ci": "vitest run --mode=ci"
+}
+```
