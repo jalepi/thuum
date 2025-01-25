@@ -6,7 +6,8 @@
     "lint": "eslint . --cache --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --check --cache '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ci": "vitest run --mode=ci"
   },
   "keywords": [],
