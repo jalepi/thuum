@@ -41,6 +41,17 @@ describe("probe tests", () => {
     expect(ret).toHaveBeenCalledWith([divideByZeroError, undefined]);
   });
 
+  it("should probe without return", () => {
+    const spy = vi.fn();
+    const decor = probe((...args) => {
+      spy(args);
+    });
+    const div = decor(divide);
+
+    expect(div(4, 2)).toBe(2);
+    expect(spy).toHaveBeenCalledWith([4, 2]);
+  });
+
   it("should probe typed", () => {
     interface A {
       foo: string;

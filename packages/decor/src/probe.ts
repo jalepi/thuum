@@ -25,17 +25,17 @@ import type { Any, Attempt } from "./types";
  * // prints function succeeded with return: "Hello, my friend"
  */
 export const probe = <const Args extends Any[], const R>(
-  probe: (...args: Args) => ([error, value]: Attempt<R>) => void,
+  probe: (...args: Args) => void | (([error, value]: Attempt<R>) => void),
 ) => {
   return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => R2) => {
     return (...args: Args2): R2 => {
       const complete = probe(...args);
       try {
         const value = fn(...args);
-        complete([undefined, value]);
+        complete?.([undefined, value]);
         return value;
       } catch (error) {
-        complete([error, undefined]);
+        complete?.([error, undefined]);
         throw error;
       }
     };
