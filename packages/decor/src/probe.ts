@@ -1,4 +1,6 @@
-import type { Any, Attempt } from "./types";
+import type { Any, Result } from "./types";
+
+type ProbeFn<Args extends Any[], R> = ((...args: Args) => void) | ((...args: Args) => (result: Result<R>) => void);
 
 /**
  * Creates a probe decorator
@@ -24,18 +26,16 @@ import type { Any, Attempt } from "./types";
  * // prints Hello, my friend
  * // prints function succeeded with return: "Hello, my friend"
  */
-export const probe = <const Args extends Any[], const R>(
-  probe: (...args: Args) => void | (([error, value]: Attempt<R>) => void),
-) => {
+export const probe = <const Args extends Any[], const R>(probe: ProbeFn<Args, R>) => {
   return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => R2) => {
     return (...args: Args2): R2 => {
       const complete = probe(...args);
       try {
         const value = fn(...args);
-        complete?.([undefined, value]);
+        complete?.({ value });
         return value;
       } catch (error) {
-        complete?.([error, undefined]);
+        complete?.({ error });
         throw error;
       }
     };

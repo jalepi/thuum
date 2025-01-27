@@ -1,17 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, assert } from "vitest";
 import { attempt } from "./attempt";
 
-describe("", () => {
+describe("attempt decorator tests", () => {
   it("should attempt to succeed a function call", () => {
     const fn = () => {
       return "ok";
     };
     const decor = attempt(fn);
 
-    const [error, value] = decor();
+    const result = decor();
 
-    expect(error).toBe(undefined);
-    expect(value).toBe("ok");
+    assert(!("error" in result));
+    assert("value" in result);
+    expect(result.value).toBe("ok");
   });
 
   it("should attempt to fail a function call", () => {
@@ -21,9 +22,9 @@ describe("", () => {
     };
     const decor = attempt(fn);
 
-    const [error, value] = decor();
-
-    expect(error).toBe(err);
-    expect(value).toBe(undefined);
+    const result = decor();
+    assert(!("value" in result));
+    assert("error" in result);
+    expect(result.error).toBe(err);
   });
 });

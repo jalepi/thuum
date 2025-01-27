@@ -1,28 +1,32 @@
 import { describe, it, expect, vi } from "vitest";
 import { probe } from "./probe";
-import { Attempt } from "../types";
+import type { Result } from "../types";
 
 function createSubject() {
   const spies = { args: vi.fn(), ret: vi.fn() };
   const decor = probe(async (...args) => {
     spies.args(args);
     await Promise.resolve();
-    return async ([error, value]) => {
+    return async (result) => {
       await Promise.resolve();
-      spies.ret([error, value]);
+      spies.ret(result);
     };
   });
   return { decor, ...spies };
 }
 
-describe("probe tests", () => {
+const someValue = { value: expect.anything() as unknown };
+const someError = { error: expect.anything() as unknown };
+
+describe("probe async decorator tests", () => {
   it("should probe function arguments and success", async () => {
     const { decor, args, ret } = createSubject();
     const fn = decor((x: number) => Promise.resolve(x + 1));
 
     await expect(fn(2)).resolves.toBe(3);
     expect(args).toHaveBeenCalledWith([2]);
-    expect(ret).toHaveBeenCalledWith([undefined, 3]);
+    expect(ret).toHaveBeenCalledWith({ value: 3 });
+    expect(ret).not.toHaveBeenCalledWith(someError);
   });
 
   it("should probe function arguments and failure", async () => {
@@ -32,7 +36,8 @@ describe("probe tests", () => {
 
     await expect(fn(2)).rejects.toThrow(error);
     expect(args).toHaveBeenCalledWith([2]);
-    expect(ret).toHaveBeenCalledWith([error, undefined]);
+    expect(ret).not.toHaveBeenCalledWith(someValue);
+    expect(ret).toHaveBeenCalledWith({ error });
   });
 
   it("should probe without return", async () => {
@@ -55,14 +60,12 @@ describe("probe tests", () => {
     }
 
     const spyArgs = vi.fn<(a: A) => void>();
-    const spyValue = vi.fn<(value?: A) => void>();
-    const spyError = vi.fn<(error?: unknown) => void>();
+    const spyResult = vi.fn<(result: Result<A>) => void>();
     const decor = probe(async (a: A) => {
       spyArgs(a);
       await Promise.resolve();
-      return async ([error, value]: Attempt<A>) => {
-        spyError(error);
-        spyValue(value);
+      return async (result: Result<A>) => {
+        spyResult(result);
         await Promise.resolve();
       };
     });
@@ -75,7 +78,7 @@ describe("probe tests", () => {
     await expect(fn2(b)).resolves.toBe(b);
 
     expect(spyArgs).toHaveBeenCalledWith(b);
-    expect(spyError).toHaveBeenCalledWith(undefined);
-    expect(spyValue).toHaveBeenCalledWith(b);
+    expect(spyResult).toHaveBeenCalledWith({ value: b });
+    expect(spyResult).not.toHaveBeenCalledWith(someError);
   });
 });

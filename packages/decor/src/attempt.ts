@@ -1,7 +1,7 @@
-import { Any, Attempt } from "./types";
+import type { Any, Result } from "./types";
 
 /**
- * Decorates a function, returning a try-catch version which returns a {@link Attempt}
+ * Decorates a function, returning a try-catch version which returns a {@link Result}
  * @param fn function
  * @returns attempt version of the function
  *
@@ -27,12 +27,12 @@ import { Any, Attempt } from "./types";
  * ```
  */
 export const attempt =
-  <const Args extends Any[], const R>(fn: (...args: Args) => R): ((...args: Args) => Attempt<R>) =>
-  (...args: Args): Attempt<R> => {
+  <const Args extends Any[], const R>(fn: (...args: Args) => R) =>
+  (...args: Args): Result<R> => {
     try {
       const value = fn(...args);
-      return [undefined, value];
+      return { value };
     } catch (error) {
-      return [error, undefined];
+      return { error };
     }
   };
