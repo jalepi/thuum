@@ -27,7 +27,7 @@ import { Any, Attempt } from "./types";
  * ```
  */
 export const attempt =
-  <Args extends Any[], R>(fn: (...args: Args) => R): ((...args: Args) => Attempt<R>) =>
+  <const Args extends Any[], const R>(fn: (...args: Args) => R): ((...args: Args) => Attempt<R>) =>
   (...args: Args): Attempt<R> => {
     try {
       const value = fn(...args);
