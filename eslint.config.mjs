@@ -17,7 +17,7 @@ export default ts.config(
   },
   {
     files: [`${code}/**/*.{js,jsx,ts,tsx}`],
-    extends: [js.configs.recommended, ...ts.configs.stylisticTypeChecked, ...ts.configs.recommendedTypeChecked],
+    extends: [js.configs.recommended, ...ts.configs.stylisticTypeChecked, ...ts.configs.strictTypeChecked],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
@@ -30,6 +30,8 @@ export default ts.config(
     rules: {
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/consistent-type-exports": "error",
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
