@@ -1,6 +1,6 @@
 import type { Any, Avoidable, Result } from "../types";
 
-type ProbeAsyncFn<Args extends Any[], R> = (...args: Args) => Promise<Avoidable<(result: Result<R>) => Promise<void>>>;
+type ProbeAsyncFn<Args extends Any[], R> = (args: Args) => Promise<Avoidable<(result: Result<R>) => Promise<void>>>;
 
 /**
  * Creates an async probe decorator
@@ -29,9 +29,9 @@ type ProbeAsyncFn<Args extends Any[], R> = (...args: Args) => Promise<Avoidable<
 export const probe = <const Args extends Any[], const R>(probe: ProbeAsyncFn<Args, R>) => {
   return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => Promise<R2>) => {
     return async (...args: Args2): Promise<R2> => {
-      const complete = await probe.apply(probe, args);
+      const complete = await probe.call(probe, args);
       try {
-        const value = await fn.apply(fn, args);
+        const value = await fn(...args);
         await complete?.({ value });
         return value;
       } catch (error) {
