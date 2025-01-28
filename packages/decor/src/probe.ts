@@ -1,6 +1,6 @@
-import type { Any, Result } from "./types";
+import type { Any, AvoidableFn, Result } from "./types";
 
-type ProbeFn<Args extends Any[], R> = ((...args: Args) => void) | ((...args: Args) => (result: Result<R>) => void);
+type ProbeFn<Args extends Any[], R> = AvoidableFn<(...args: Args) => (result: Result<R>) => void>;
 
 /**
  * Creates a probe decorator
@@ -29,9 +29,9 @@ type ProbeFn<Args extends Any[], R> = ((...args: Args) => void) | ((...args: Arg
 export const probe = <const Args extends Any[], const R>(probe: ProbeFn<Args, R>) => {
   return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => R2) => {
     return (...args: Args2): R2 => {
-      const complete = probe(...args);
+      const complete = probe.apply(probe, args);
       try {
-        const value = fn(...args);
+        const value = fn.apply(fn, args);
         complete?.({ value });
         return value;
       } catch (error) {
