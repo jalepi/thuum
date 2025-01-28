@@ -30,7 +30,7 @@ export const attempt =
   <const Args extends Any[], const R>(fn: (...args: Args) => R) =>
   (...args: Args): Result<R> => {
     try {
-      const value = fn.apply(fn, args);
+      const value = fn.apply(this, args);
       return { value };
     } catch (error) {
       return { error };

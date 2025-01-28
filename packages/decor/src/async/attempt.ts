@@ -27,7 +27,7 @@ export const attempt =
   <const Args extends Any[], const R>(fn: (...args: Args) => Promise<R>) =>
   async (...args: Args): Promise<Result<R>> => {
     try {
-      const value = await fn.apply(args);
+      const value = await fn.apply(this, args);
       return { value };
     } catch (error) {
       return { error };
