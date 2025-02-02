@@ -1,23 +1,14 @@
-export type FunctionPipe<X, Y> = Readonly<{
-  pipe: <const Z>(fn: (y: Y) => Z) => FunctionPipe<X, Z>;
-  fn: (x: X) => Y;
-}>;
+import type { Builder, FunctionPipe, PipeFn } from "./build-types";
 
-const pipe = <const X, const Y>(fn: (x: X) => Y): FunctionPipe<X, Y> =>
-  Object.freeze({
-    pipe: (fn2) => pipe((x) => fn2(fn(x))),
-    fn,
-  } as const satisfies FunctionPipe<X, Y>);
+const pipe: PipeFn = (fn) => ({
+  pipe: (fn2) => pipe((x) => fn2(fn(x))),
+  fn,
+});
 
-type Builder = Readonly<{
-  pipe: <const X, const Y>(fn: (x: X) => Y) => FunctionPipe<X, Y>;
-  fn: <const X>(x: X) => X;
-}>;
-
-const builder: Builder = Object.freeze({
+const builder: Builder = {
   pipe: (fn) => pipe(fn),
   fn: (x) => x,
-});
+};
 
 /**
  * Builds a function pipe
