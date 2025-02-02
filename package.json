@@ -7,6 +7,7 @@
     "format": "prettier --check --cache '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "test": "vitest run",
+    "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "test:ci": "vitest run --mode=ci"
   },
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@eslint/js": "catalog:lint",
     "@vitest/coverage-v8": "catalog:vitest",
+    "@vitest/ui": "catalog:vitest",
     "eslint": "catalog:lint",
     "eslint-config-prettier": "catalog:lint",
     "eslint-plugin-prettier": "catalog:lint",

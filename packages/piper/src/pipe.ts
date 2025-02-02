@@ -1,10 +1,4 @@
-/**
- * Pipe hold a value that can be piped through another pipe
- */
-export type ValuePipe<T> = Readonly<{
-  pipe: <const R>(fn: (x: T) => R) => ValuePipe<R>;
-  value: T;
-}>;
+import type { PipeVal } from "./pipe-types";
 
 /**
  * Initializes a pipe with input value
@@ -18,8 +12,8 @@ export type ValuePipe<T> = Readonly<{
  * expect(value).toBe(4);
  * ```
  */
-export const pipe = <const T>(value: T): ValuePipe<T> =>
-  Object.freeze({
-    pipe: (fn) => pipe(fn(value)),
-    value,
-  } as const satisfies ValuePipe<T>);
+const pipe: PipeVal = (value) => ({
+  pipe: (fn) => pipe(fn(value)),
+  value,
+});
+export default pipe;

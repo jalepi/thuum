@@ -1,11 +1,13 @@
-import type { Any, Result } from "./types";
+import type { Any, Result } from "../types";
 
-type ProbeFn<Args extends Any[], R> = ((args: Args) => (result: Result<R>) => void) | ((args: Args) => void);
+type ProbeAsyncFn<Args extends Any[], R> =
+  | ((args: Args) => Promise<(result: Result<R>) => Promise<void>>)
+  | ((args: Args) => Promise<void>);
 
 /**
- * Creates a probe decorator
+ * Creates an async probe decorator
  * @param probe
- * @returns probe decorator
+ * @returns async probe decorator
  *
  * @example
  * const trace = probe((...args) => {
@@ -26,16 +28,16 @@ type ProbeFn<Args extends Any[], R> = ((args: Args) => (result: Result<R>) => vo
  * // prints Hello, my friend
  * // prints function succeeded with return: "Hello, my friend"
  */
-export const probe = <const Args extends Any[], const R>(probe: ProbeFn<Args, R>) => {
-  return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => R2) => {
-    return (...args: Args2): R2 => {
-      const complete = probe(args);
+export const probe = <const Args extends Any[], const R>(probe: ProbeAsyncFn<Args, R>) => {
+  return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => Promise<R2>) => {
+    return async (...args: Args2): Promise<R2> => {
+      const complete = await probe(args);
       try {
-        const value = fn.apply(this, args);
-        complete?.({ value });
+        const value = await fn.apply(this, args);
+        await complete?.({ value });
         return value;
       } catch (error) {
-        complete?.({ error });
+        await complete?.({ error });
         throw error;
       }
     };
