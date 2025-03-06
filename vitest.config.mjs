@@ -4,6 +4,7 @@ import workspace from "./vitest.workspace.mjs";
 export default defineConfig(({ mode }) => ({
   test: {
     workspace,
+    environment: "happy-dom",
     reporters: mode === "ci" ? ["default", "junit"] : ["default"],
     outputFile: {
       junit: "./test-results/junit.xml",
