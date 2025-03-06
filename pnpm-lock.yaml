@@ -7,45 +7,45 @@ settings:
 catalogs:
   lint:
     '@eslint/js':
-      specifier: ^9.19.0
+      specifier: ^9.21.0
       version: 9.21.0
     eslint:
-      specifier: ^9.19.0
+      specifier: ^9.21.0
       version: 9.21.0
     eslint-config-prettier:
-      specifier: ^10.0.1
+      specifier: ^10.0.2
       version: 10.0.2
     eslint-plugin-prettier:
       specifier: ^5.2.3
       version: 5.2.3
     globals:
-      specifier: ^15.14.0
-      version: 15.15.0
+      specifier: ^16.0.0
+      version: 16.0.0
     prettier:
-      specifier: ^3.4.2
+      specifier: ^3.5.3
       version: 3.5.3
     typescript-eslint:
-      specifier: ^8.21.0
+      specifier: ^8.26.0
       version: 8.26.0
   ts:
     tslib:
       specifier: ^2.8.1
       version: 2.8.1
     typescript:
-      specifier: ^5.7.3
+      specifier: ^5.8.2
       version: 5.8.2
   vitest:
     '@vitest/coverage-v8':
-      specifier: ^3.0.4
+      specifier: ^3.0.8
       version: 3.0.8
     '@vitest/ui':
-      specifier: ^3.0.4
+      specifier: ^3.0.8
       version: 3.0.8
     happy-dom:
-      specifier: ^16.7.2
-      version: 16.8.1
+      specifier: ^17.2.2
+      version: 17.2.2
     vitest:
-      specifier: ^3.0.4
+      specifier: ^3.0.8
       version: 3.0.8
 
 importers:
@@ -72,10 +72,10 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.0.2(eslint@9.21.0))(eslint@9.21.0)(prettier@3.5.3)
       globals:
         specifier: catalog:lint
-        version: 15.15.0
+        version: 16.0.0
       happy-dom:
         specifier: catalog:vitest
-        version: 16.8.1
+        version: 17.2.2
       prettier:
         specifier: catalog:lint
         version: 3.5.3
@@ -90,7 +90,7 @@ importers:
         version: 8.26.0(eslint@9.21.0)(typescript@5.8.2)
       vitest:
         specifier: catalog:vitest
-        version: 3.0.8(@vitest/ui@3.0.8)(happy-dom@16.8.1)
+        version: 3.0.8(@vitest/ui@3.0.8)(happy-dom@17.2.2)
 
   packages/bus:
     devDependencies:
@@ -862,15 +862,15 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  globals@15.15.0:
-    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
+  globals@16.0.0:
+    resolution: {integrity: sha512-iInW14XItCXET01CQFqudPOWP2jYMl7T+QRQT+UNcR/iQncN/F0UNpgd76iFkBPgNQb4+X3LV9tLJYzwh+Gl3A==}
     engines: {node: '>=18'}
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-dom@16.8.1:
-    resolution: {integrity: sha512-n0QrmT9lD81rbpKsyhnlz3DgnMZlaOkJPpgi746doA+HvaMC79bdWkwjrNnGJRvDrWTI8iOcJiVTJ5CdT/AZRw==}
+  happy-dom@17.2.2:
+    resolution: {integrity: sha512-3I1/CrNi780sdOhuhUnFtgTWhloSc3quSZwsylI41jycx8o97M6Y4aQAu0phSexGusT7+59BxATh4L4xiY0HcA==}
     engines: {node: '>=18.0.0'}
 
   has-flag@4.0.0:
@@ -1678,7 +1678,7 @@ snapshots:
       std-env: 3.8.1
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.0.8(@vitest/ui@3.0.8)(happy-dom@16.8.1)
+      vitest: 3.0.8(@vitest/ui@3.0.8)(happy-dom@17.2.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -1725,7 +1725,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.12
       tinyrainbow: 2.0.0
-      vitest: 3.0.8(@vitest/ui@3.0.8)(happy-dom@16.8.1)
+      vitest: 3.0.8(@vitest/ui@3.0.8)(happy-dom@17.2.2)
 
   '@vitest/utils@3.0.8':
     dependencies:
@@ -2012,11 +2012,11 @@ snapshots:
 
   globals@14.0.0: {}
 
-  globals@15.15.0: {}
+  globals@16.0.0: {}
 
   graphemer@1.4.0: {}
 
-  happy-dom@16.8.1:
+  happy-dom@17.2.2:
     dependencies:
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
@@ -2371,7 +2371,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  vitest@3.0.8(@vitest/ui@3.0.8)(happy-dom@16.8.1):
+  vitest@3.0.8(@vitest/ui@3.0.8)(happy-dom@17.2.2):
     dependencies:
       '@vitest/expect': 3.0.8
       '@vitest/mocker': 3.0.8(vite@6.2.0)
@@ -2395,7 +2395,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@vitest/ui': 3.0.8(vitest@3.0.8)
-      happy-dom: 16.8.1
+      happy-dom: 17.2.2
     transitivePeerDependencies:
       - jiti
       - less
