@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "exclude": [
+    "${configDir}/**/*.test.ts",
+    "${configDir}/**/*.spec.ts",
+    "${configDir}/**/*.bench.ts",
+    "${configDir}/dist",
+    "${configDir}/node_modules"
+  ]
+}
