@@ -1,8 +1,4 @@
 {
-  "extends": "./tsconfig.esm.json",
-  "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "outDir": "./dist/cjs"
-  }
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": ["./tsconfig.json", "../../tsconfig.cjs.json"]
 }
