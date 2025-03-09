@@ -1,6 +1,6 @@
 import { test, expect, vi } from "vitest";
 import { rep, req } from "./req";
-import type { MakeReq, RequestMessage, ResponseMessage } from "./types";
+import type { MakeReq, ReqHandler, RequestMessage, ResponseMessage } from "./types";
 
 type TestMap = MakeReq<
   "type",
@@ -96,4 +96,30 @@ test("rep", async ({ onTestFinished }) => {
       },
     } satisfies ResponseMessage<TestMap["foo"]["response"]>,
   ]);
+});
+
+test("req-rep", async ({ onTestFinished }) => {
+  const spy = vi.fn<ReqHandler<TestMap, "foo">>((request) => {
+    return Promise.resolve({
+      type: request.type,
+      hello: "hello " + request.name,
+    });
+  });
+  const r = req<TestMap>();
+  const s = rep<TestMap>();
+  onTestFinished(() => {
+    s.disconnect();
+  });
+
+  s.listen("foo", spy);
+
+  const reply = await r.send({ type: "foo", name: "Joe" });
+
+  expect(reply).toMatchObject({
+    type: "foo",
+    hello: "hello Joe",
+  } satisfies TestMap["foo"]["response"]);
+
+  expect(spy).toHaveBeenCalledWith({ type: "foo", name: "Joe" });
+  expect(spy).toHaveResolvedWith({ type: "foo", hello: "hello Joe" });
 });
