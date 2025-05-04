@@ -33,7 +33,7 @@ describe("message channel tests", () => {
     expect(sender).toBeDefined();
   });
 
-  it("should send and receiver messages", async ({ onTestFinished }) => {
+  it("should sender.send sends and receiver.on receive messages", async ({ onTestFinished }) => {
     const { receiver } = createChannel({ transport, schemas });
     const { sender } = createChannel({ transport, schemas });
     const spy = vi.fn();
@@ -54,14 +54,14 @@ describe("message channel tests", () => {
     });
   });
 
-  it("should on receive invalid topic throw error", () => {
+  it("should receiver.on receive invalid topic throw error", () => {
     const { receiver } = createChannel({ schemas, transport });
     expect(() => {
       receiver.on("invalid topic" as "foo", { ondata: vi.fn() });
     }).toThrowError(new Error(`Topic "invalid topic" not found in schemas`));
   });
 
-  it("should send invalid message returns error", () => {
+  it("should sender.send invalid message returns error", () => {
     const { sender } = createChannel({ schemas, transport });
 
     const result = sender.send("foo", { invalid: "foo" } as unknown as { name: string });
@@ -69,5 +69,13 @@ describe("message channel tests", () => {
       error: new Error("Failed to parse message"),
       trace: [new Error("name is not in data")],
     });
+  });
+
+  it("should receiver.on invalid topic throw error", () => {
+    const { receiver } = createChannel({ schemas, transport });
+
+    expect(() => {
+      receiver.on("invalid topic" as "foo", { ondata: vi.fn() });
+    }).toThrowError(new Error(`Topic "invalid topic" not found in schemas`));
   });
 });
