@@ -13,11 +13,9 @@ export default defineConfig(({ mode }) => ({
       enabled: mode === "ci",
       include: ["**/src/**"],
       provider: "v8",
-      reporter: [
-        ["cobertura", { file: "cobertura.xml" }],
-        ["html-spa", { subdir: "html" }],
-      ],
+      reporter: [["text"], ["cobertura", { file: "cobertura.xml" }], ["html-spa", { subdir: "html" }]],
       reportsDirectory: "./test-results/coverage",
     },
+    restoreMocks: true,
   },
 }));

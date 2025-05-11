@@ -32,7 +32,7 @@ export default ts.config(
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/consistent-type-exports": "error",
       "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-invalid-void-type": "error",
+      "@typescript-eslint/no-invalid-void-type": ["error", { allowAsThisParameter: true }],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

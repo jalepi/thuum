@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
-    "test:ci": "vitest run --mode=ci"
+    "test:ci": "vitest run --mode=ci",
+    "test:all": "pnpm -r run build && pnpm run format && pnpm run lint && pnpm run test"
   },
   "keywords": [],
   "author": "",
