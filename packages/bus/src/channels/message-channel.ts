@@ -41,7 +41,7 @@ export function createSender<
   return {
     send(topic, message) {
       if (!(topic in schemas)) {
-        return { error: new Error(`Topic ${topic} not found in schemas`) };
+        return { error: new Error(`Topic "${topic}" not found in schemas`) };
       }
 
       const schema = schemas[topic];

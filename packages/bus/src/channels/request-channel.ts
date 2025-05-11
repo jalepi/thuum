@@ -2,7 +2,7 @@ import { traceError, type Result } from "../result";
 import type { MessageTransport } from "../transport";
 import { uniqueId } from "../utils";
 import { isRequest, isResponse, type RequestModel } from "./request-models";
-import type { RequestMapFromSchema, RequestSchema, RequestSender, RequestReceiver, RequestChannel } from "./types";
+import type { RequestChannel, RequestMapFromSchema, RequestReceiver, RequestSchema, RequestSender } from "./types";
 
 export function createReceiver<Schema extends RequestSchema, Map extends RequestMapFromSchema<Schema>>({
   schemas,
