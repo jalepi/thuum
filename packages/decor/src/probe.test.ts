@@ -4,7 +4,7 @@ import type { Result } from "./types";
 
 function createSubject() {
   const spies = { args: vi.fn(), ret: vi.fn() };
-  const decor = probe((args) => {
+  const decor = probe(({ args }) => {
     spies.args(args);
     return (result) => {
       spies.ret(result);
@@ -27,7 +27,7 @@ describe("probe decorator tests", () => {
   it("should probe function arguments and success", () => {
     const { decor, args, ret } = createSubject();
 
-    const div = decor(divide);
+    const div = decor("divide", divide);
 
     expect(div(4, 2)).toBe(2);
     expect(args).toHaveBeenCalledWith([4, 2]);
@@ -38,7 +38,7 @@ describe("probe decorator tests", () => {
   it("should probe function arguments and failure", () => {
     const { decor, args, ret } = createSubject();
 
-    const div = decor(divide);
+    const div = decor("divide", divide);
 
     expect(() => div(4, 0)).toThrow(divideByZeroError);
     expect(args).toHaveBeenCalledWith([4, 0]);
@@ -48,24 +48,24 @@ describe("probe decorator tests", () => {
 
   it("should probe without return", () => {
     const spy = vi.fn();
-    const decor = probe((args) => {
+    const decor = probe(({ args }) => {
       spy(args);
     });
-    const div = decor(divide);
+    const div = decor("ctx", divide);
 
     expect(div(4, 2)).toBe(2);
     expect(spy).toHaveBeenCalledWith([4, 2]);
   });
 
   it("should probe modify arguments", () => {
-    const decor = probe((args: [a: number, b: number]) => {
+    const decor = probe(({ args }: { args: [a: number, b: number] }) => {
       args[0] = -args[0];
       args[1] = -args[1];
       args.push(42);
     });
 
     const spy = vi.fn((a: number, b: number) => a + b);
-    const add = decor(spy);
+    const add = decor("fn1", spy);
 
     expect(add(1, 2)).toBe(-3);
     expect(spy).toHaveBeenCalledWith(-1, -2, 42);
@@ -81,14 +81,14 @@ describe("probe decorator tests", () => {
 
     const spyArgs = vi.fn<(a: A) => void>();
     const spyResult = vi.fn<(result: Result<A>) => void>();
-    const decor = probe(([a]: [a: A]) => {
+    const decor = probe(({ args: [a] }: { args: [a: A] }) => {
       spyArgs(a);
       return spyResult;
     });
 
     const fn1: (b: B) => B = (b: B) => b;
 
-    const fn2: (b: B) => B = decor(fn1);
+    const fn2: (b: B) => B = decor("fn1", fn1);
 
     const b = { foo: "foo1", bar: "bar1" };
     const res = fn2(b);
@@ -98,4 +98,34 @@ describe("probe decorator tests", () => {
     expect(spyResult).toHaveBeenCalledWith({ value: b });
     expect(spyResult).not.toHaveBeenCalledWith(someError);
   });
+
+  it("should probe", () => {
+    probe((args) => {
+      console.log("calling with", args);
+      return (result) => {
+        if ("error" in result) {
+          console.log("throwing with", args, result.error);
+          return;
+        }
+        console.log("returning with", args, result.value);
+      };
+    });
+  });
+});
+
+it("should demo probe", () => {
+  const decor = probe<string>(({ ctx, args }) => {
+    console.log({ ctx, args });
+
+    return (result) => {
+      console.log({ result });
+    };
+  });
+
+  const divide: (x: number, y: number) => number = vi.fn((x: number, y: number): number => x / y);
+
+  const divide2 = decor("ctx", divide);
+
+  expect(divide2(4, 2)).toBe(2);
+  expect(divide).toHaveBeenCalledWith(4, 2);
 });

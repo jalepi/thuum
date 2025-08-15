@@ -26,9 +26,8 @@ import type { Any, Result } from "./types";
  * }
  * ```
  */
-export const attempt =
-  <const Args extends Any[], const R>(fn: (...args: Args) => R) =>
-  (...args: Args): Result<R> => {
+export const attempt = <const Args extends Any[], const R>(fn: (...args: Args) => R) =>
+  function (this: void, ...args: Args): Result<R> {
     try {
       const value = fn.apply(this, args);
       return { value };
