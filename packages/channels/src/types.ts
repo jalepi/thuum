@@ -1,4 +1,4 @@
-import type { Err, Result, Val } from "../result";
+import type { Err, Result, Val } from "./result";
 
 export type Parser<T> = { parse(value: T): Result<T> };
 

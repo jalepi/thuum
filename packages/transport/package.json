@@ -1,14 +1,14 @@
 {
-  "name": "@thuum/bus",
+  "name": "@thuum/transport",
   "version": "0.0.0",
-  "description": "Typescript example library",
+  "description": "Thuum transport library",
   "keywords": [],
   "author": "Jalepi",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jalepi/thuum.git",
-    "directory": "packages/bus"
+    "directory": "packages/transport"
   },
   "scripts": {
     "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "tslib": "catalog:ts",
-    "typescript": "^5.8.2"
+    "typescript": "catalog:ts"
   },
   "type": "module",
   "main": "dist/cjs/index.cjs",

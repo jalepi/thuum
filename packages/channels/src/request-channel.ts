@@ -1,6 +1,6 @@
-import { traceError, type Result } from "../result";
-import type { MessageTransport } from "../transport";
-import { uniqueId } from "../utils";
+import type { MessageTransport } from "@thuum/transport";
+import { traceError, type Result } from "./result";
+import { uniqueId } from "./utils";
 import { isRequest, isResponse, type RequestModel } from "./request-models";
 import type { RequestChannel, RequestMapFromSchema, RequestReceiver, RequestSchema, RequestSender } from "./types";
 

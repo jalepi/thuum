@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
+import { createTransport } from "@thuum/transport";
 import type { FromRequestChannel, RequestSchema } from "./types";
-import { createTransport } from "../transport";
 import { createChannel } from "./request-channel";
-import * as utils from "../utils";
+import * as utils from "./utils";
 
 type TestRequestMap = {
   foo: { request: { name: string }; response: { id: number } };

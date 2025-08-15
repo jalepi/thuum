@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
+import { createTransport } from "@thuum/transport";
 import { createChannel } from "./message-channel";
-import { createTransport } from "../transport";
 import type { MessageSchema } from "./types";
 
 type TestMap = {

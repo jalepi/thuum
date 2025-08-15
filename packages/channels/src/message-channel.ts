@@ -1,5 +1,5 @@
-import type { MessageTransport } from "../transport";
-import { traceError } from "../result";
+import type { MessageTransport } from "@thuum/transport";
+import { traceError } from "./result";
 import type { MessageChannel, MessageMapFromSchema, MessageSchema, MessageSender, MessageReceiver } from "./types";
 
 export function createReceiver<
