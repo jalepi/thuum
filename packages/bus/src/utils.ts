@@ -1,3 +1,5 @@
 export function uniqueId(): string {
-  return Math.random().toString(36).substring(2);
+  const time = performance.timeOrigin + performance.now();
+  const random = Math.random();
+  return time.toString(36).replace(".", "") + random.toString(36).replace(".", "");
 }
