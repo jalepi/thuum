@@ -87,7 +87,7 @@ if (error) {
 }
 
 // Function tracing with probe
-const trace = probe(({ ctx, args }) => {
+const trace = probe(({ args }) => {
   console.log("Called with:", args);
   return (result) => {
     if ("error" in result) {
@@ -98,7 +98,8 @@ const trace = probe(({ ctx, args }) => {
   };
 });
 
-const tracedHello = trace({}, (name: string) => `Hello, ${name}!`);
+const logger = { name: "myLogger" };
+const tracedHello = trace(logger, (name: string) => `Hello, ${name}!`);
 tracedHello("World"); // Logs arguments and result
 ```
 
