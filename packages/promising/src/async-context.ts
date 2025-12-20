@@ -3,9 +3,9 @@ type Any = any;
 
 type EventMap = {
   waiting: object;
-  starting: object;
-  completed: object;
-  failed: object;
+  pending: object;
+  resolved: object;
+  rejected: object;
 };
 export type AsyncContextEvent = {
   [K in keyof EventMap]: {
@@ -23,6 +23,7 @@ export interface AsyncContextOptions {
 
 export interface AsyncContext {
   run<Args extends Any[], R>(name: string, fn: (...args: Args) => R | Promise<R>, ...args: Args): Promise<R>;
+  get continuation(): Promise<unknown>;
 }
 
 type AsyncContextCtor = (options: AsyncContextOptions) => AsyncContext;
@@ -35,19 +36,26 @@ const createContext: AsyncContextCtor = ({ watch }) => {
     run(name, fn, ...args) {
       const taskId = ++seed;
       watch?.({ type: "waiting", name, size: ++size, taskId });
-      const c = continuation.then(async () => {
-        try {
-          watch?.({ type: "starting", name, size, taskId });
-          const r = await fn(...args);
-          watch?.({ type: "completed", name, size: --size, taskId });
-          return r;
-        } catch (error: unknown) {
-          watch?.({ type: "failed", name, size: --size, taskId });
-          throw error;
-        }
-      });
+      const c = continuation
+        .catch((_reason: unknown) => {
+          /** noop */
+        })
+        .then(async () => {
+          try {
+            watch?.({ type: "pending", name, size, taskId });
+            const r = await fn(...args);
+            watch?.({ type: "resolved", name, size: --size, taskId });
+            return r;
+          } catch (error: unknown) {
+            watch?.({ type: "rejected", name, size: --size, taskId });
+            throw error;
+          }
+        });
       continuation = c;
       return c;
+    },
+    get continuation() {
+      return continuation;
     },
   };
   return ctx;
