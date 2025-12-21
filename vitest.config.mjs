@@ -21,6 +21,12 @@ export default defineConfig(({ mode }) => ({
         ["html", { subdir: "html" }],
       ],
       reportsDirectory: "./test-results/coverage",
+      thresholds: {
+        lines: 90,
+        branches: 90,
+        functions: 90,
+        statements: 90,
+      },
     },
     restoreMocks: true,
   },
