@@ -1,7 +1,3 @@
-const noop = () => {
-  /** noop */
-};
-
 export type PromiseResolver<T> = Readonly<{
   /** Resolves the promise */
   resolve(this: void, value: T): void;
@@ -35,8 +31,8 @@ export type PromiseResolver<T> = Readonly<{
  * ```
  */
 const withResolvers = <T = void>(): PromiseResolver<T> => {
-  let resolve: (v: T) => void = noop;
-  let reject: (reason: unknown) => void = noop;
+  let resolve: (v: T) => void = () => undefined;
+  let reject: (reason: unknown) => void = () => undefined;
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;
