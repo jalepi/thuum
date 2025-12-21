@@ -8,6 +8,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -51,12 +54,9 @@ jobs:
       - name: Run tests with coverage
         run: pnpm run test --coverage
 
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
+      - name: Report Coverage
+        uses: davelosert/vitest-coverage-report-action@v2
         if: always()
         with:
-          fail_ci_if_error: false
-          files: ./coverage/coverage-final.json
-          flags: unittests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          json-summary-path: "./test-results/coverage/coverage-summary.json"
+          json-final-path: "./test-results/coverage/coverage-final.json"
