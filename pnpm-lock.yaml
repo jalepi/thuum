@@ -132,6 +132,15 @@ importers:
         specifier: catalog:ts
         version: 5.8.2
 
+  packages/promising:
+    devDependencies:
+      tslib:
+        specifier: catalog:ts
+        version: 2.8.1
+      typescript:
+        specifier: catalog:ts
+        version: 5.8.2
+
   packages/transport:
     devDependencies:
       tslib:
