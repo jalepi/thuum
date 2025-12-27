@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { build } from "./build";
+import build from "./build";
 
 describe("builder tests", () => {
   it("should build returns builder", () => {

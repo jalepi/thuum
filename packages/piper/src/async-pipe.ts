@@ -1,12 +1,10 @@
-/**
- * Pipe hold a value that can be piped through another pipe
- */
+/** Pipe hold a value that can be piped through another pipe */
 export type ValuePipe<T> = {
-  pipe: <const R>(fn: (x: T) => R) => ValuePipe<R>;
-  readonly value: T;
+  pipe: <const R>(fn: (x: T) => Promise<R>) => ValuePipe<R>;
+  readonly value: Promise<T>;
 };
 
-export type PipeVal = <const T>(value: T) => ValuePipe<T>;
+export type PipeVal = <const T>(value: Promise<T>) => ValuePipe<T>;
 
 /**
  * Initializes a pipe with input value
@@ -21,7 +19,7 @@ export type PipeVal = <const T>(value: T) => ValuePipe<T>;
  * ```
  */
 const pipe: PipeVal = (value) => ({
-  pipe: (fn) => pipe(fn(value)),
+  pipe: (fn) => pipe(value.then(fn)),
   value,
 });
 export default pipe;
