@@ -1,14 +1,18 @@
 import { describe, it, expect } from "vitest";
+import * as index from ".";
 
 describe("package exports tests", () => {
   it("should export 'build', 'pipe'", async () => {
-    const index = await import(".");
+    const { default: build } = await import("./build");
+    const { default: pipe } = await import("./pipe");
+    const { default: asyncBuild } = await import("./async-build");
+    const { default: asyncPipe } = await import("./async-pipe");
 
-    expect(Object.keys(index)).toStrictEqual(["build", "pipe"]);
-
-    const { build, pipe } = index;
-
-    expect(build).toBeTypeOf("function");
-    expect(pipe).toBeTypeOf("function");
+    expect(index).toMatchObject({
+      build,
+      pipe,
+      asyncBuild,
+      asyncPipe,
+    } satisfies typeof index);
   });
 });

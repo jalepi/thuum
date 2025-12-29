@@ -7,7 +7,7 @@ A TypeScript monorepo providing utility libraries for functional programming, er
 Thuum is a collection of focused, type-safe TypeScript libraries designed to enhance functional programming patterns and inter-component communication. The workspace includes:
 
 - **[@thuum/decor](#thuum-decor)** - Function decorators for error handling and observability
-- **[@thuum/piper](#thuum-piper)** - Functional pipe operators and function chaining utilities
+- **[@thuum/piper](#thuum-piper)** - Functional pipe operators and function chaining with async support
 - **[@thuum/transport](#thuum-transport)** - Abstract message transport layer
 - **[@thuum/channels](#thuum-channels)** - Type-safe message and request/response channels
 - **[@thuum/example](#thuum-example)** - Example package template
@@ -105,32 +105,52 @@ tracedHello("World"); // Logs arguments and result
 
 ### @thuum/piper
 
-Functional programming utilities for pipe operations and function composition.
+Functional programming utilities for pipe operations and function composition with support for both synchronous and asynchronous operations.
 
 #### Features
 
-- **`pipe(value)`** - Chain transformations on a value
-- **`build<T>()`** - Build composed functions from a chain of transformations
+- **`pipe(value)`** - Chain synchronous transformations on a value
+- **`build<T>()`** - Build composed functions from synchronous transformations
+- **`asyncPipe(value)`** - Chain transformations that support both sync and async functions
+- **`asyncBuild<T>()`** - Build composed functions mixing sync and async operations
+- **`MaybePromise<T>`** - Type that allows seamless mixing of sync and async functions
 
 #### Example
 
 ```typescript
-import pipe, { build } from "@thuum/piper";
+import { pipe, build, asyncPipe, asyncBuild } from "@thuum/piper";
 
-// Value pipe - transform a value through a chain
+// Synchronous value pipe - transform a value through a chain
 const { value } = pipe(1)
   .pipe(x => x + 1)
   .pipe(x => x * 2);
 
 console.log(value); // 4
 
-// Function builder - create a reusable function
+// Synchronous function builder - create a reusable function
 const { fn } = build<number>()
   .pipe(x => x + 1)
   .pipe(x => x * 2);
 
 console.log(fn(1)); // 4
 console.log(fn(5)); // 12
+
+// Async pipe - mix sync and async functions freely
+const { value: asyncValue } = asyncPipe(1)
+  .pipe(x => x + 1)                          // sync function
+  .pipe(async x => Promise.resolve(x * 2))   // async function
+  .pipe(x => x.toString());                  // sync function
+
+const result = await asyncValue; // "4"
+
+// Async build - compose reusable async pipelines
+const { fn: fetchUser } = asyncBuild<number>()
+  .pipe(async id => fetch(`/api/users/${id}`))
+  .pipe(async res => res.json())
+  .pipe(data => data.name)    // sync functions work too!
+  .pipe(name => name.toUpperCase());
+
+const userName = await fetchUser(123);
 ```
 
 ### @thuum/transport

@@ -1,8 +1,17 @@
 {
   "name": "@thuum/piper",
   "version": "0.0.1",
-  "description": "Piper brings 'pipe' features and function chaining",
-  "keywords": [],
+  "description": "Functional programming utilities for pipe operations and function composition with async support",
+  "keywords": [
+    "pipe",
+    "compose",
+    "functional",
+    "chain",
+    "transform",
+    "async",
+    "typescript",
+    "fp"
+  ],
   "author": "Jalepi",
   "license": "ISC",
   "repository": {
@@ -20,7 +29,7 @@
     "typescript": "catalog:ts"
   },
   "type": "module",
-  "main": "dist/cjs/index.cjs",
+  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
@@ -31,7 +40,27 @@
       },
       "require": {
         "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.cjs"
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./async-pipe": {
+      "import": {
+        "types": "./dist/esm/async-pipe.d.ts",
+        "default": "./dist/esm/async-pipe.js"
+      },
+      "require": {
+        "types": "./dist/cjs/async-pipe.d.ts",
+        "default": "./dist/cjs/async-pipe.js"
+      }
+    },
+    "./async-build": {
+      "import": {
+        "types": "./dist/esm/async-build.d.ts",
+        "default": "./dist/esm/async-build.js"
+      },
+      "require": {
+        "types": "./dist/cjs/async-build.d.ts",
+        "default": "./dist/cjs/async-build.js"
       }
     }
   },

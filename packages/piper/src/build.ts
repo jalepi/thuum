@@ -1,4 +1,14 @@
-import type { Builder, FunctionPipe, PipeFn } from "./build-types";
+type FunctionPipe<X, Y> = {
+  pipe: <const Z>(fn: (y: Y) => Z) => FunctionPipe<X, Z>;
+  fn: (x: X) => Y;
+};
+
+type PipeFn = <const X, const Y>(fn: (x: X) => Y) => FunctionPipe<X, Y>;
+
+type Builder = {
+  pipe: <const X, const Y>(fn: (x: X) => Y) => FunctionPipe<X, Y>;
+  fn: <const X>(x: X) => X;
+};
 
 const pipe: PipeFn = (fn) => ({
   pipe: (fn2) => pipe((x) => fn2(fn(x))),
@@ -22,4 +32,6 @@ const builder: Builder = {
  * assert(fn(2) === 6);
  * ```
  */
-export const build = <const X>(): FunctionPipe<X, X> => builder;
+const build = <const X>(): FunctionPipe<X, X> => builder;
+
+export default build;
