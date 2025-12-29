@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import asyncPipe from "./async-pipe";
 
 describe("async-pipe tests", () => {
@@ -33,5 +33,15 @@ describe("async-pipe tests", () => {
       .pipe(multAsync(2));
 
     await expect(value).resolves.toBe(46);
+  });
+
+  it("should pipe throws stop execution", async () => {
+    const spy = vi.fn<(x: number) => number>((x) => x);
+    const { value } = asyncPipe(1)
+      .pipe(() => Promise.reject(new Error("One")))
+      .pipe(spy);
+
+    await expect(value).rejects.toThrowError(new Error("One"));
+    expect(spy).not.toHaveBeenCalled();
   });
 });
