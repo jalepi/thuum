@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import pipe from "./async-pipe";
+import asyncPipe from "./async-pipe";
 
 describe("async-pipe tests", () => {
   it("should pipe value be value", async () => {
-    const { value } = pipe(Promise.resolve(1));
+    const { value } = asyncPipe(Promise.resolve(1));
     await expect(value).resolves.toBe(1);
   });
 
@@ -11,7 +11,7 @@ describe("async-pipe tests", () => {
     const fn1 = (x: number) => Promise.resolve(x + 1);
     const fn2 = (x: number) => Promise.resolve(x * 2);
 
-    const { value } = pipe(Promise.resolve(1)).pipe(fn1).pipe(fn2);
+    const { value } = asyncPipe(Promise.resolve(1)).pipe(fn1).pipe(fn2);
 
     await expect(value).resolves.toBe(4);
   });

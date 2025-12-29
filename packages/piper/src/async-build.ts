@@ -1,11 +1,11 @@
-export type FunctionPipe<X, Y> = {
+type FunctionPipe<X, Y> = {
   pipe: <const Z>(fn: (y: Y) => Promise<Z>) => FunctionPipe<X, Z>;
   fn: (x: X) => Promise<Y>;
 };
 
-export type PipeFn = <const X, const Y>(fn: (x: X) => Promise<Y>) => FunctionPipe<X, Y>;
+type PipeFn = <const X, const Y>(fn: (x: X) => Promise<Y>) => FunctionPipe<X, Y>;
 
-export type Builder = {
+type Builder = {
   pipe: <const X, const Y>(fn: (x: X) => Promise<Y>) => FunctionPipe<X, Y>;
   fn: <const X>(x: X) => Promise<X>;
 };
@@ -34,4 +34,6 @@ const builder: Builder = {
  * assert(6 === await fn(2));
  * ```
  */
-export const build = <const X>(): FunctionPipe<X, X> => builder;
+const build = <const X>(): FunctionPipe<X, X> => builder;
+
+export default build;
