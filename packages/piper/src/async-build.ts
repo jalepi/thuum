@@ -1,23 +1,25 @@
+type MaybePromise<T> = T | Promise<T>;
+
 type FunctionPipe<X, Y> = {
-  pipe: <const Z>(fn: (y: Y) => Promise<Z>) => FunctionPipe<X, Z>;
-  fn: (x: X) => Promise<Y>;
+  pipe: <const Z>(fn: (y: Y) => MaybePromise<Z>) => FunctionPipe<X, Z>;
+  fn: (x: X) => MaybePromise<Y>;
 };
 
-type PipeFn = <const X, const Y>(fn: (x: X) => Promise<Y>) => FunctionPipe<X, Y>;
+type PipeFn = <const X, const Y>(fn: (x: X) => MaybePromise<Y>) => FunctionPipe<X, Y>;
 
 type Builder = {
-  pipe: <const X, const Y>(fn: (x: X) => Promise<Y>) => FunctionPipe<X, Y>;
-  fn: <const X>(x: X) => Promise<X>;
+  pipe: <const X, const Y>(fn: (x: X) => MaybePromise<Y>) => FunctionPipe<X, Y>;
+  fn: <const X>(x: X) => MaybePromise<X>;
 };
 
 const pipe: PipeFn = (fn) => ({
-  pipe: (fn2) => pipe((x) => fn(x).then(fn2)),
+  pipe: (fn2) => pipe((x) => (async () => await fn2(await fn(await x)))()),
   fn,
 });
 
 const builder: Builder = {
   pipe: (fn) => pipe(fn),
-  fn: (x) => Promise.resolve(x),
+  fn: async (x) => await x,
 };
 
 /**

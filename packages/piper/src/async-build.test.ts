@@ -22,4 +22,23 @@ describe("async-builder tests", () => {
 
     await expect(fn(1)).resolves.toBe(4);
   });
+
+  it("should pipe mixed synchronous and asynchronous functions", async () => {
+    const add = (y: number) => (x: number) => x + y;
+    const mult = (y: number) => (x: number) => x * y;
+    const addAsync = (y: number) => (x: number) => Promise.resolve(x + y);
+    const multAsync = (y: number) => (x: number) => Promise.resolve(x * y);
+
+    const { fn } = asyncBuild<number>()
+      .pipe(add(1))
+      .pipe(mult(2))
+      .pipe(addAsync(1))
+      .pipe(multAsync(2))
+      .pipe(add(1))
+      .pipe(mult(2))
+      .pipe(addAsync(1))
+      .pipe(multAsync(2));
+
+    await expect(fn(1)).resolves.toBe(46);
+  });
 });

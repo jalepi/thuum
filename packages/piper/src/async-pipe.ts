@@ -1,10 +1,12 @@
+type MaybePromise<T> = T | Promise<T>;
+
 /** Pipe hold a value that can be piped through another pipe */
 type ValuePipe<T> = {
-  pipe: <const R>(fn: (x: T) => Promise<R>) => ValuePipe<R>;
-  readonly value: Promise<T>;
+  pipe: <const R>(fn: (x: T) => MaybePromise<R>) => ValuePipe<R>;
+  readonly value: MaybePromise<T>;
 };
 
-type PipeVal = <const T>(value: Promise<T>) => ValuePipe<T>;
+type PipeVal = <const T>(value: MaybePromise<T>) => ValuePipe<T>;
 
 /**
  * Initializes a pipe with input value
@@ -19,7 +21,7 @@ type PipeVal = <const T>(value: Promise<T>) => ValuePipe<T>;
  * ```
  */
 const pipe: PipeVal = (value) => ({
-  pipe: (fn) => pipe(value.then(fn)),
+  pipe: (fn) => pipe((async () => await fn(await value))()),
   value,
 });
 

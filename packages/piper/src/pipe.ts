@@ -1,6 +1,4 @@
-/**
- * Pipe hold a value that can be piped through another pipe
- */
+/** Pipe hold a value that can be piped through another pipe */
 type ValuePipe<T> = {
   pipe: <const R>(fn: (x: T) => R) => ValuePipe<R>;
   readonly value: T;
