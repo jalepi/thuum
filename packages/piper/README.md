@@ -14,18 +14,20 @@ yarn add @thuum/piper
 
 ## Overview
 
-`@thuum/piper` provides two main utilities for functional programming:
+`@thuum/piper` provides utilities for functional programming with support for both synchronous and asynchronous operations:
 
-- **`pipe(value)`** - Transform a value through a chain of functions
-- **`build<T>()`** - Compose functions into a reusable transformation pipeline
+- **`pipe(value)`** - Transform a value through a chain of synchronous functions
+- **`build<T>()`** - Compose synchronous functions into a reusable transformation pipeline
+- **`asyncPipe(value)`** - Transform values through chains that support both sync and async functions
+- **`asyncBuild<T>()`** - Compose functions (sync or async) into a reusable async pipeline
 
-Both utilities support synchronous and asynchronous operations with full TypeScript type safety.
+All utilities provide full TypeScript type safety with automatic type inference.
 
 ## Features
 
 - 🔗 **Fluent API** - Chain transformations with `.pipe()`
 - 🔄 **Function Composition** - Build reusable transformation pipelines
-- ⚡ **Async Support** - Native Promise support for async operations
+- ⚡ **Flexible Async Support** - Mix synchronous and asynchronous functions seamlessly
 - 🎯 **Type Safe** - Full TypeScript inference throughout the chain
 - 🪶 **Lightweight** - Zero dependencies
 - 📦 **Dual Package** - ESM and CommonJS support
@@ -34,7 +36,7 @@ Both utilities support synchronous and asynchronous operations with full TypeScr
 
 ### `pipe(value)`
 
-Creates a pipe that transforms a value through a sequence of functions.
+Creates a pipe that transforms a value through a sequence of synchronous functions.
 
 #### Signature
 
@@ -50,7 +52,7 @@ interface ValuePipe<T> {
 #### Example
 
 ```typescript
-import pipe from "@thuum/piper";
+import { pipe } from "@thuum/piper";
 
 const { value } = pipe(1)
   .pipe(x => x + 1)      // 2
@@ -69,7 +71,7 @@ console.log(value); // "Result: 4"
 
 ### `build<T>()`
 
-Creates a reusable function by composing a sequence of transformations.
+Creates a reusable function by composing a sequence of synchronous transformations.
 
 #### Signature
 
@@ -106,43 +108,98 @@ console.log(processNumber(10)); // "Result: 22"
 
 ## Async Support
 
-Both `pipe` and `build` have async counterparts for working with Promises.
+The async variants support **both synchronous and asynchronous functions** in the same pipeline using the `MaybePromise<T>` type, which allows seamless mixing of sync and async operations.
 
-### Async Pipe
+### `asyncPipe(value)`
 
-Import from `@thuum/piper/async-pipe`:
+Transform values through a chain that accepts both sync and async functions. The value itself can also be a Promise.
+
+#### Signature
 
 ```typescript
-import pipe from "@thuum/piper/async-pipe";
+type MaybePromise<T> = T | Promise<T>;
 
-const { value } = pipe(Promise.resolve(1))
-  .pipe(async x => x + 1)
-  .pipe(async x => x * 2);
+function asyncPipe<T>(value: MaybePromise<T>): ValuePipe<T>
 
-const result = await value; // 4
+interface ValuePipe<T> {
+  pipe<R>(fn: (x: T) => MaybePromise<R>): ValuePipe<R>;
+  readonly value: MaybePromise<T>;
+}
 ```
 
-### Async Build
-
-Import from `@thuum/piper/async-build`:
+#### Example
 
 ```typescript
-import { build } from "@thuum/piper/async-build";
+import { asyncPipe } from "@thuum/piper";
 
-const { fn: fetchAndProcess } = build<number>()
-  .pipe(async id => fetch(`/api/users/${id}`))
-  .pipe(async response => response.json())
-  .pipe(async data => data.name);
+// Mix sync and async functions freely
+const { value } = asyncPipe(1)
+  .pipe(x => x + 1)                    // sync function
+  .pipe(async x => x * 2)              // async function
+  .pipe(x => x.toString())             // sync function
+  .pipe(async x => `Result: ${x}`);   // async function
+
+const result = await value; // "Result: 4"
+```
+
+#### Starting with a Promise
+
+```typescript
+import { asyncPipe } from "@thuum/piper";
+
+const { value } = asyncPipe(Promise.resolve(5))
+  .pipe(x => x + 1)           // 6
+  .pipe(async x => x * 2);    // 12
+
+const result = await value; // 12
+```
+
+### `asyncBuild<T>()`
+
+Compose a reusable function from both sync and async transformations.
+
+#### Signature
+
+```typescript
+type MaybePromise<T> = T | Promise<T>;
+
+function asyncBuild<X>(): FunctionPipe<X, X>
+
+interface FunctionPipe<X, Y> {
+  pipe<Z>(fn: (y: Y) => MaybePromise<Z>): FunctionPipe<X, Z>;
+  fn: (x: X) => MaybePromise<Y>;
+}
+```
+
+#### Example
+
+```typescript
+import { asyncBuild } from "@thuum/piper";
+
+// Mix sync and async operations
+const { fn: fetchAndProcess } = asyncBuild<number>()
+  .pipe(async id => fetch(`/api/users/${id}`))    // async
+  .pipe(async response => response.json())         // async
+  .pipe(data => data.name)                         // sync
+  .pipe(name => name.toUpperCase());               // sync
 
 const name = await fetchAndProcess(123);
 ```
+
+#### Why MaybePromise?
+
+The `MaybePromise<T>` type allows you to:
+- **Mix function types**: Use both sync and async functions in the same pipeline
+- **Optimize performance**: Use sync functions when possible, async only when needed
+- **Simplify code**: No need to wrap sync functions in `Promise.resolve()`
+- **Type safety**: TypeScript ensures the entire pipeline is correctly typed
 
 ## Advanced Examples
 
 ### Complex Data Transformation
 
 ```typescript
-import pipe from "@thuum/piper";
+import { pipe } from "@thuum/piper";
 
 interface User {
   name: string;
@@ -182,30 +239,53 @@ console.log(sanitize("  Hello World! 123  ")); // "hello-world-123"
 console.log(sanitize("TypeScript & Node.js")); // "typescript-nodejs"
 ```
 
-### Async API Workflow
+### Async API Workflow with Mixed Sync/Async
 
 ```typescript
-import { build } from "@thuum/piper/async-build";
+import { asyncBuild } from "@thuum/piper";
 
 interface ApiResponse {
   data: { id: number; value: string }[];
 }
 
-const { fn: fetchUserData } = build<number>()
+const { fn: fetchUserData } = asyncBuild<number>()
   .pipe(async userId => {
     const response = await fetch(`/api/users/${userId}`);
     return response.json() as Promise<ApiResponse>;
   })
-  .pipe(async response => response.data)
-  .pipe(async data => data.map(item => item.value))
-  .pipe(async values => values.join(", "));
+  .pipe(response => response.data)              // sync
+  .pipe(data => data.map(item => item.value))   // sync
+  .pipe(values => values.join(", "));           // sync
 
 const result = await fetchUserData(42);
 ```
 
-### Error Handling with Decorators
+### Error Handling with Async Pipeline
 
-Combine with `@thuum/decor` for safe error handling:
+```typescript
+import { asyncBuild } from "@thuum/piper";
+
+const { fn: safeFetch } = asyncBuild<string>()
+  .pipe(async url => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    } catch (error) {
+      return { error: error.message };
+    }
+  })
+  .pipe(result => {
+    if ('error' in result) {
+      return `Error: ${result.error}`;
+    }
+    return `Success: ${JSON.stringify(result)}`;
+  });
+
+const result = await safeFetch('https://api.example.com/data');
+```
+
+### Combining with @thuum/decor
 
 ```typescript
 import { build } from "@thuum/piper";
@@ -219,13 +299,50 @@ const { fn: safeDivide } = build<{ a: number; b: number }>()
   .pipe(result => Math.round(result * 100) / 100);
 
 // Wrap with attempt for error handling
-const { fn: divide } = { fn: attempt(safeDivide) };
+const divideSafe = attempt(safeDivide);
 
-const result1 = divide({ a: 10, b: 2 });
+const result1 = divideSafe({ a: 10, b: 2 });
 console.log(result1); // { value: 5, error: undefined }
 
-const result2 = divide({ a: 10, b: 0 });
+const result2 = divideSafe({ a: 10, b: 0 });
 console.log(result2); // { value: undefined, error: Error("Division by zero") }
+```
+
+### Real-World Example: Data Processing Pipeline
+
+```typescript
+import { asyncPipe } from "@thuum/piper";
+
+interface RawData {
+  timestamp: string;
+  value: string;
+}
+
+interface ProcessedData {
+  date: Date;
+  value: number;
+  category: string;
+}
+
+const { value } = asyncPipe<RawData[]>(
+  fetch('/api/data').then(r => r.json())
+)
+  .pipe(data => data.filter(item => item.value !== null))  // sync
+  .pipe(async data => {
+    // Simulate async validation
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return data;
+  })
+  .pipe(data => data.map(item => ({                        // sync
+    date: new Date(item.timestamp),
+    value: parseFloat(item.value),
+    category: parseFloat(item.value) > 100 ? 'high' : 'low'
+  })))
+  .pipe(data => data.sort((a, b) =>                        // sync
+    b.date.getTime() - a.date.getTime()
+  ));
+
+const processed: ProcessedData[] = await value;
 ```
 
 ## TypeScript Support
@@ -233,23 +350,35 @@ console.log(result2); // { value: undefined, error: Error("Division by zero") }
 Full type inference throughout the pipeline:
 
 ```typescript
-import pipe, { build } from "@thuum/piper";
+import { pipe, build, asyncPipe, asyncBuild } from "@thuum/piper";
 
-// Types are automatically inferred at each step
+// Sync pipe - types are automatically inferred at each step
 const { value } = pipe(42)
   .pipe(x => x.toString())     // x: number, returns: string
   .pipe(x => x.length)         // x: string, returns: number
   .pipe(x => x > 1);           // x: number, returns: boolean
-
 // value is inferred as boolean
 
-// Type parameter only needed at the start
+// Sync build
 const { fn } = build<string>()
   .pipe(x => x.split(","))     // returns: string[]
   .pipe(x => x.length)         // returns: number
   .pipe(x => x * 2);           // returns: number
-
 // fn is inferred as (x: string) => number
+
+// Async pipe with MaybePromise
+const { value: asyncValue } = asyncPipe(42)
+  .pipe(x => x + 1)            // sync: returns number
+  .pipe(async x => x * 2)      // async: returns Promise<number>
+  .pipe(x => x.toString());    // sync: returns string
+// asyncValue is inferred as MaybePromise<string>
+
+// Async build with MaybePromise
+const { fn: asyncFn } = asyncBuild<number>()
+  .pipe(async x => x + 1)      // returns: MaybePromise<number>
+  .pipe(x => x * 2)            // returns: MaybePromise<number>
+  .pipe(x => x.toString());    // returns: MaybePromise<string>
+// asyncFn is inferred as (x: number) => MaybePromise<string>
 ```
 
 ## Comparison with Native Methods
@@ -281,6 +410,23 @@ Benefits:
 - Easier to debug (inspect intermediate values)
 - Simple to add/remove transformation steps
 - Type safety at each step
+- Clear separation of concerns
+
+## Package Exports
+
+```typescript
+// Main exports (sync)
+import { pipe, build } from "@thuum/piper";
+
+// Async exports
+import { asyncPipe, asyncBuild } from "@thuum/piper";
+
+// Or import individually
+import pipe from "@thuum/piper"; // default export is pipe
+import { build } from "@thuum/piper";
+import { asyncPipe } from "@thuum/piper";
+import { asyncBuild } from "@thuum/piper";
+```
 
 ## License
 
@@ -289,3 +435,9 @@ ISC
 ## Contributing
 
 Contributions are welcome! Please see the main [Thuum repository](https://github.com/jalepi/thuum) for contribution guidelines.
+
+## Related Packages
+
+- **[@thuum/decor](../decor)** - Function decorators for error handling and observability
+- **[@thuum/transport](../transport)** - Abstract message transport layer
+- **[@thuum/channels](../channels)** - Type-safe message channels
