@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { probe } from "./probe";
 import type { Result } from "../types";
 
@@ -19,39 +19,39 @@ const someValue = { value: expect.anything() as unknown };
 const someError = { error: expect.anything() as unknown };
 
 describe("probe async decorator tests", () => {
-  it("should probe function arguments and success", async () => {
+  it("should probe function arguments and success", () => {
     const { decor, args, ret } = createSubject();
     const fn = decor((x: number) => Promise.resolve(x + 1));
 
-    await expect(fn(2)).resolves.toBe(3);
+    expect(fn(2)).resolves.toBe(3);
     expect(args).toHaveBeenCalledWith([2]);
     expect(ret).toHaveBeenCalledWith({ value: 3 });
     expect(ret).not.toHaveBeenCalledWith(someError);
   });
 
-  it("should probe function arguments and failure", async () => {
+  it("should probe function arguments and failure", () => {
     const { decor, args, ret } = createSubject();
     const error = new Error("problem");
     const fn = decor((_x: number) => Promise.reject<number>(error));
 
-    await expect(fn(2)).rejects.toThrow(error);
+    expect(fn(2)).rejects.toThrow(error);
     expect(args).toHaveBeenCalledWith([2]);
     expect(ret).not.toHaveBeenCalledWith(someValue);
     expect(ret).toHaveBeenCalledWith({ error });
   });
 
-  it("should probe without return", async () => {
+  it("should probe without return", () => {
     const spy = vi.fn();
     const decor = probe(async (args) => {
       spy(await Promise.resolve(args));
     });
     const fn = decor((x: number) => Promise.resolve(x + 1));
 
-    await expect(fn(2)).resolves.toBe(3);
+    expect(fn(2)).resolves.toBe(3);
     expect(spy).toHaveBeenCalledWith([2]);
   });
 
-  it("should probe modify arguments", async () => {
+  it("should probe modify arguments", () => {
     const decor = probe(async (args: [a: number, b: number]) => {
       args[0] = await Promise.resolve(-args[0]);
       args[1] = await Promise.resolve(-args[1]);
@@ -61,11 +61,11 @@ describe("probe async decorator tests", () => {
     const spy = vi.fn(async (a: number, b: number) => await Promise.resolve(a + b));
     const add = decor(spy);
 
-    await expect(add(1, 2)).resolves.toBe(-3);
+    expect(add(1, 2)).resolves.toBe(-3);
     expect(spy).toHaveBeenCalledWith(-1, -2, 42);
   });
 
-  it("should probe typed", async () => {
+  it("should probe typed", () => {
     interface A {
       foo: string;
     }
@@ -89,7 +89,7 @@ describe("probe async decorator tests", () => {
     const fn2: (b: B) => Promise<B> = decor(fn1);
 
     const b = { foo: "foo1", bar: "bar1" };
-    await expect(fn2(b)).resolves.toBe(b);
+    expect(fn2(b)).resolves.toBe(b);
 
     expect(spyArgs).toHaveBeenCalledWith(b);
     expect(spyResult).toHaveBeenCalledWith({ value: b });

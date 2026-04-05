@@ -4,32 +4,30 @@
   "main": "index.js",
   "scripts": {
     "build": "bun --filter '*' build",
-    "build:ci": "bun run build && bun run format && bun run lint",
+    "build:ci": "bun run build && bun run test:ci && bun run format && bun run lint",
     "lint": "eslint . --cache --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --check --cache '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:watch": "vitest",
-    "test:ci": "vitest run --mode=ci"
+    "test": "bun test packages",
+    "test:watch": "bun test packages --watch",
+    "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage --coverage-reporter=lcov --coverage-dir=./test-results/coverage && bun run scripts/coverage-report.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "catalog:lint",
-    "@vitest/coverage-v8": "catalog:vitest",
-    "@vitest/ui": "catalog:vitest",
+    "@happy-dom/global-registrator": "^20.8.9",
+    "@types/bun": "latest",
     "eslint": "catalog:lint",
     "eslint-config-prettier": "catalog:lint",
     "eslint-plugin-prettier": "catalog:lint",
     "globals": "catalog:lint",
-    "happy-dom": "catalog:vitest",
+    "happy-dom": "^17.6.3",
     "prettier": "catalog:lint",
     "tslib": "catalog:ts",
     "typescript": "catalog:ts",
-    "typescript-eslint": "catalog:lint",
-    "vitest": "catalog:vitest"
+    "typescript-eslint": "catalog:lint"
   },
   "workspaces": {
     "packages": [
@@ -48,12 +46,6 @@
       "ts": {
         "tslib": "^2.8.1",
         "typescript": "^5.9.3"
-      },
-      "vitest": {
-        "@vitest/coverage-v8": "^3.2.4",
-        "@vitest/ui": "^3.2.4",
-        "happy-dom": "^17.6.3",
-        "vitest": "^3.2.4"
       }
     }
   }

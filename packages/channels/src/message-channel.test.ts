@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+/// <reference lib="dom" />
+
+import { describe, it, expect, vi } from "bun:test";
+import { waitFor, useCleanup } from "../../../test-helpers";
 import { createTransport } from "@thuum/transport";
 import { createChannel } from "./message-channel";
 import type { MessageSchema } from "./types";
@@ -27,13 +30,14 @@ const schemas: MessageSchema<TestMap> = {
 const transport = createTransport({ type: "window-custom-event", namespace: "test" });
 
 describe("message channel tests", () => {
+  const register = useCleanup();
   it("should create message channel", () => {
     const { receiver, sender } = createChannel({ transport, schemas });
     expect(receiver).toBeDefined();
     expect(sender).toBeDefined();
   });
 
-  it("should sender.send sends and receiver.on receive messages", async ({ onTestFinished }) => {
+  it("should sender.send sends and receiver.on receive messages", async () => {
     const { receiver } = createChannel({ transport, schemas });
     const { sender } = createChannel({ transport, schemas });
     const spy = vi.fn();
@@ -43,13 +47,13 @@ describe("message channel tests", () => {
         spy(value);
       },
     });
-    onTestFinished(() => {
+    register(() => {
       disposable.dispose();
     });
 
     sender.send("foo", { name: "Foo" });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(spy).toHaveBeenCalledWith({ name: "Foo" });
     });
   });
@@ -88,7 +92,7 @@ describe("message channel tests", () => {
     }).toThrowError(new Error(`Topic "invalid topic" not found in schemas`));
   });
 
-  it("should receiver.on invalid message calls back onerror", async ({ onTestFinished }) => {
+  it("should receiver.on invalid message calls back onerror", async () => {
     const { receiver } = createChannel({ transport, schemas });
 
     const handlerSpy = {
@@ -97,13 +101,13 @@ describe("message channel tests", () => {
     };
 
     const subscription = receiver.on("foo", handlerSpy);
-    onTestFinished(() => {
+    register(() => {
       subscription.dispose();
     });
 
     transport.sender.send("foo", { invalid: "foo" });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(handlerSpy.onerror).toHaveBeenCalledWith({
         error: new Error("Failed to parse message"),
         trace: [new Error("name is not in data")],

@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+/// <reference lib="dom" />
+
+import { describe, it, expect, vi } from "bun:test";
+import { useCleanup } from "../../../test-helpers";
 import { createTransport } from "@thuum/transport";
 import type { FromRequestChannel, RequestSchema } from "./types";
 import { createChannel } from "./request-channel";
@@ -39,13 +42,14 @@ const schemas: RequestSchema<TestRequestMap> = {
 const transport = createTransport({ type: "window-custom-event", namespace: "test" });
 
 describe("request channel tests", () => {
+  const register = useCleanup();
   it("should create channel", () => {
     const { receiver, sender } = createChannel({ schemas, transport });
     expect(receiver).toBeDefined();
     expect(sender).toBeDefined();
   });
 
-  it("should sender.send return valid result", async ({ onTestFinished }) => {
+  it("should sender.send return valid result", async () => {
     const channel1 = createChannel({ schemas, transport });
     const channel2 = createChannel({ schemas, transport });
 
@@ -60,7 +64,7 @@ describe("request channel tests", () => {
 
     const disposable = channel1.receiver.on("foo", handler);
 
-    onTestFinished(() => {
+    register(() => {
       disposable.dispose();
     });
     const response = await channel2.sender.send("foo", { name: "Foo" });
@@ -79,7 +83,7 @@ describe("request channel tests", () => {
     expect({ error: new Error(`Topic "invalid topic" not found in schemas`) }).toMatchObject(result);
   });
 
-  it("should sender receive invalid response return error", async ({ onTestFinished }) => {
+  it("should sender receive invalid response return error", async () => {
     const id = utils.uniqueId();
     vi.spyOn(utils, "uniqueId").mockImplementationOnce(() => id);
 
@@ -88,14 +92,14 @@ describe("request channel tests", () => {
     const unsubscribe = transport.receiver.on("foo", () => {
       transport.sender.send(`foo:${id}`, { invalid: true });
     });
-    onTestFinished(unsubscribe);
+    register(unsubscribe);
 
     const result = await sender.send("foo", { name: "Foo" });
 
     expect({ error: new Error(`Topic "foo:${id}" received invalid response`) }).toMatchObject(result);
   });
 
-  it("should receive invalid response result value return error", async ({ onTestFinished }) => {
+  it("should receive invalid response result value return error", async () => {
     const id = utils.uniqueId();
     vi.spyOn(utils, "uniqueId").mockImplementationOnce(() => id);
 
@@ -104,7 +108,7 @@ describe("request channel tests", () => {
     const unsubscribe = transport.receiver.on("foo", () => {
       transport.sender.send(`foo:${id}`, { $result: { value: { invalid: true } } });
     });
-    onTestFinished(unsubscribe);
+    register(unsubscribe);
 
     const result = await sender.send("foo", { name: "Foo" });
 

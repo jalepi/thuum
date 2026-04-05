@@ -1,22 +1,22 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import asyncPipe from "./async-pipe";
 
 describe("async-pipe tests", () => {
-  it("should pipe value be value", async () => {
+  it("should pipe value be value", () => {
     const { value } = asyncPipe(Promise.resolve(1));
-    await expect(value).resolves.toBe(1);
+    expect(value).resolves.toBe(1);
   });
 
-  it("should pipe number through a sequence of functions", async () => {
+  it("should pipe number through a sequence of functions", () => {
     const fn1 = (x: number) => Promise.resolve(x + 1);
     const fn2 = (x: number) => Promise.resolve(x * 2);
 
     const { value } = asyncPipe(Promise.resolve(1)).pipe(fn1).pipe(fn2);
 
-    await expect(value).resolves.toBe(4);
+    expect(value).resolves.toBe(4);
   });
 
-  it("should pipe mixed synchronous and asynchronous functions", async () => {
+  it("should pipe mixed synchronous and asynchronous functions", () => {
     const add = (y: number) => (x: number) => x + y;
     const mult = (y: number) => (x: number) => x * y;
     const addAsync = (y: number) => (x: number) => Promise.resolve(x + y);
@@ -32,16 +32,16 @@ describe("async-pipe tests", () => {
       .pipe(addAsync(1))
       .pipe(multAsync(2));
 
-    await expect(value).resolves.toBe(46);
+    expect(value).resolves.toBe(46);
   });
 
-  it("should pipe throws stop execution", async () => {
+  it("should pipe throws stop execution", () => {
     const spy = vi.fn<(x: number) => number>((x) => x);
     const { value } = asyncPipe(1)
       .pipe(() => Promise.reject(new Error("One")))
       .pipe(spy);
 
-    await expect(value).rejects.toThrowError(new Error("One"));
+    expect(value).rejects.toThrowError(new Error("One"));
     expect(spy).not.toHaveBeenCalled();
   });
 });
