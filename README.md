@@ -17,7 +17,7 @@ Thuum is a collection of focused, type-safe TypeScript libraries designed to enh
 ### Prerequisites
 
 - Node.js (v18 or higher recommended)
-- pnpm (v8 or higher)
+- Bun (v1.3 or higher)
 
 ### Quick Start
 
@@ -26,32 +26,32 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/jalepi/thuum.git
 cd thuum
-pnpm install
+bun install
 ```
 
 ### Building All Packages
 
 ```bash
-pnpm -r run build
+bun run --workspaces --sequential build
 ```
 
 ### Running Tests
 
 ```bash
 # Run tests in watch mode
-pnpm run test:watch
+bun run test:watch
 
 # Run tests once
-pnpm run test
+bun run test
 
 # Run tests with UI
-pnpm run test:ui
+bun run test:ui
 
 # Run all tests in CI mode
-pnpm run test:ci
+bun run test:ci
 
 # Run full test suite (build, format, lint, test)
-pnpm run test:all
+bun run test:all
 ```
 
 ## Packages
@@ -122,33 +122,33 @@ import { pipe, build, asyncPipe, asyncBuild } from "@thuum/piper";
 
 // Synchronous value pipe - transform a value through a chain
 const { value } = pipe(1)
-  .pipe(x => x + 1)
-  .pipe(x => x * 2);
+  .pipe((x) => x + 1)
+  .pipe((x) => x * 2);
 
 console.log(value); // 4
 
 // Synchronous function builder - create a reusable function
 const { fn } = build<number>()
-  .pipe(x => x + 1)
-  .pipe(x => x * 2);
+  .pipe((x) => x + 1)
+  .pipe((x) => x * 2);
 
 console.log(fn(1)); // 4
 console.log(fn(5)); // 12
 
 // Async pipe - mix sync and async functions freely
 const { value: asyncValue } = asyncPipe(1)
-  .pipe(x => x + 1)                          // sync function
-  .pipe(async x => Promise.resolve(x * 2))   // async function
-  .pipe(x => x.toString());                  // sync function
+  .pipe((x) => x + 1) // sync function
+  .pipe(async (x) => Promise.resolve(x * 2)) // async function
+  .pipe((x) => x.toString()); // sync function
 
 const result = await asyncValue; // "4"
 
 // Async build - compose reusable async pipelines
 const { fn: fetchUser } = asyncBuild<number>()
-  .pipe(async id => fetch(`/api/users/${id}`))
-  .pipe(async res => res.json())
-  .pipe(data => data.name)    // sync functions work too!
-  .pipe(name => name.toUpperCase());
+  .pipe(async (id) => fetch(`/api/users/${id}`))
+  .pipe(async (res) => res.json())
+  .pipe((data) => data.name) // sync functions work too!
+  .pipe((name) => name.toUpperCase());
 
 const userName = await fetchUser(123);
 ```
@@ -208,16 +208,16 @@ const messageChannel = createMessageChannel({
   schemas: {
     notification: {
       message: {
-        parse: (data) => ({ value: data })
-      }
-    }
+        parse: (data) => ({ value: data }),
+      },
+    },
   },
-  transport: createTransport({ namespace: "app", target: window })
+  transport: createTransport({ namespace: "app", target: window }),
 });
 
 messageChannel.receiver.on("notification", {
   ondata: ({ value }) => console.log(value),
-  onerror: ({ error }) => console.error(error)
+  onerror: ({ error }) => console.error(error),
 });
 
 messageChannel.sender.send("notification", { text: "New message!" });
@@ -227,16 +227,16 @@ const requestChannel = createRequestChannel({
   schemas: {
     calculate: {
       request: { parse: (data) => ({ value: data }) },
-      response: { parse: (data) => ({ value: data }) }
-    }
+      response: { parse: (data) => ({ value: data }) },
+    },
   },
-  transport: createTransport({ namespace: "app", target: window })
+  transport: createTransport({ namespace: "app", target: window }),
 });
 
 requestChannel.receiver.on("calculate", {
   ondata: async ({ value }) => {
     return value.a + value.b;
-  }
+  },
 });
 
 const result = await requestChannel.sender.send("calculate", { a: 5, b: 3 });
@@ -262,7 +262,7 @@ thuum/
 │   ├── piper/          # Pipe utilities
 │   └── transport/      # Transport layer
 ├── package.json        # Workspace root package
-├── pnpm-workspace.yaml # Workspace configuration
+├── package.json        # Workspace configuration (workspaces)
 ├── tsconfig.base.json  # Base TypeScript config
 ├── vitest.config.mjs   # Vitest configuration
 └── README.md           # This file
@@ -274,28 +274,28 @@ In the workspace root:
 
 ```bash
 # Linting
-pnpm run lint           # Check for linting errors
-pnpm run format         # Check code formatting
-pnpm run format:fix     # Auto-fix formatting issues
+bun run lint            # Check for linting errors
+bun run format          # Check code formatting
+bun run format:fix      # Auto-fix formatting issues
 
 # Testing
-pnpm run test           # Run tests once
-pnpm run test:watch     # Run tests in watch mode
-pnpm run test:ui        # Run tests with UI
-pnpm run test:ci        # Run tests in CI mode
-pnpm run test:all       # Build, format, lint, and test
+bun run test            # Run tests once
+bun run test:watch      # Run tests in watch mode
+bun run test:ui         # Run tests with UI
+bun run test:ci         # Run tests in CI mode
+bun run test:all        # Build, format, lint, and test
 
 # Building
-pnpm -r run build       # Build all packages
+bun run --workspaces --sequential build # Build all packages
 ```
 
 In individual packages:
 
 ```bash
 cd packages/<package-name>
-pnpm run build          # Build both ESM and CJS
-pnpm run build:esm      # Build ESM only
-pnpm run build:cjs      # Build CJS only
+bun run build           # Build both ESM and CJS
+bun run build:esm       # Build ESM only
+bun run build:cjs       # Build CJS only
 ```
 
 ### Adding a New Package
@@ -304,24 +304,24 @@ pnpm run build:cjs      # Build CJS only
 2. Add `package.json` with workspace dependencies
 3. Create TypeScript configs (`tsconfig.*.json`)
 4. Add source files in `src/`
-5. Run `pnpm install` from workspace root
+5. Run `bun install` from workspace root
 
 ### Technology Stack
 
-- **Package Manager**: pnpm with workspace support
+- **Package Manager**: Bun with workspaces
 - **Language**: TypeScript 5.8+
 - **Build**: TypeScript compiler (dual ESM/CJS output)
 - **Testing**: Vitest with coverage
 - **Linting**: ESLint 9 with TypeScript support
 - **Formatting**: Prettier 3
-- **Dependency Management**: pnpm catalogs for version consistency
+- **Dependency Management**: Explicit semver ranges in workspace package manifests
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Ensure tests pass (`pnpm run test:all`)
+4. Ensure tests pass (`bun run test:all`)
 5. Commit your changes (`git commit -m 'Add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
@@ -331,7 +331,7 @@ pnpm run build:cjs      # Build CJS only
 - Follow existing code patterns
 - Write tests for new features
 - Ensure TypeScript types are properly defined
-- Run `pnpm run format:fix` before committing
+- Run `bun run format:fix` before committing
 
 ## License
 
@@ -341,21 +341,22 @@ See [LICENSE](./LICENSE) for more information.
 
 ## Monorepo Setup Guide
 
-This section documents how this monorepo was initially configured for reference.
+This section documents how this monorepo is configured.
 
 ### Initial Setup
 
 Initialize package:
 
 ```bash
-pnpm init
+bun init
 ```
 
-Create `pnpm-workspace.yaml`:
+Add a `workspaces` field to the root `package.json`:
 
-```yaml
-packages:
-  - packages/*
+```json
+"workspaces": [
+  "packages/*"
+]
 ```
 
 ### ESLint + Prettier
@@ -363,7 +364,7 @@ packages:
 Install packages:
 
 ```bash
-pnpm install -w -D @eslint/js eslint eslint-config-prettier eslint-plugin-prettier globals prettier typescript-eslint
+bun add -D @eslint/js eslint eslint-config-prettier eslint-plugin-prettier globals prettier typescript-eslint
 ```
 
 Create `eslint.config.mjs` and `prettier.config.mjs` files.
@@ -378,18 +379,14 @@ Add scripts to `package.json`:
 }
 ```
 
-Catalog lint packages:
-
-```bash
-pnpx codemod pnpm/catalog
-```
+Use explicit semver ranges for dependencies.
 
 ### TypeScript
 
 Install TypeScript:
 
 ```bash
-pnpm install -w -D typescript tslib
+bun add -D typescript tslib
 ```
 
 Create `tsconfig.base.json` with shared configuration.
@@ -399,7 +396,7 @@ Create `tsconfig.base.json` with shared configuration.
 Install Vitest:
 
 ```bash
-pnpm install -w -D vitest @vitest/coverage-v8 happy-dom
+bun add -D vitest @vitest/coverage-v8 happy-dom
 ```
 
 Add `vitest.workspace.mjs` and `vitest.config.mjs` files.

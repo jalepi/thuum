@@ -7,7 +7,7 @@ Functional programming utilities for pipe operations and function composition in
 ```bash
 npm install @thuum/piper
 # or
-pnpm add @thuum/piper
+bun add @thuum/piper
 # or
 yarn add @thuum/piper
 ```
@@ -41,7 +41,7 @@ Creates a pipe that transforms a value through a sequence of synchronous functio
 #### Signature
 
 ```typescript
-function pipe<T>(value: T): ValuePipe<T>
+function pipe<T>(value: T): ValuePipe<T>;
 
 interface ValuePipe<T> {
   pipe<R>(fn: (x: T) => R): ValuePipe<R>;
@@ -55,9 +55,9 @@ interface ValuePipe<T> {
 import { pipe } from "@thuum/piper";
 
 const { value } = pipe(1)
-  .pipe(x => x + 1)      // 2
-  .pipe(x => x * 2)      // 4
-  .pipe(x => `Result: ${x}`); // "Result: 4"
+  .pipe((x) => x + 1) // 2
+  .pipe((x) => x * 2) // 4
+  .pipe((x) => `Result: ${x}`); // "Result: 4"
 
 console.log(value); // "Result: 4"
 ```
@@ -76,7 +76,7 @@ Creates a reusable function by composing a sequence of synchronous transformatio
 #### Signature
 
 ```typescript
-function build<X>(): FunctionPipe<X, X>
+function build<X>(): FunctionPipe<X, X>;
 
 interface FunctionPipe<X, Y> {
   pipe<Z>(fn: (y: Y) => Z): FunctionPipe<X, Z>;
@@ -90,12 +90,12 @@ interface FunctionPipe<X, Y> {
 import { build } from "@thuum/piper";
 
 const { fn: processNumber } = build<number>()
-  .pipe(x => x + 1)
-  .pipe(x => x * 2)
-  .pipe(x => `Result: ${x}`);
+  .pipe((x) => x + 1)
+  .pipe((x) => x * 2)
+  .pipe((x) => `Result: ${x}`);
 
-console.log(processNumber(1));  // "Result: 4"
-console.log(processNumber(5));  // "Result: 12"
+console.log(processNumber(1)); // "Result: 4"
+console.log(processNumber(5)); // "Result: 12"
 console.log(processNumber(10)); // "Result: 22"
 ```
 
@@ -119,7 +119,7 @@ Transform values through a chain that accepts both sync and async functions. The
 ```typescript
 type MaybePromise<T> = T | Promise<T>;
 
-function asyncPipe<T>(value: MaybePromise<T>): ValuePipe<T>
+function asyncPipe<T>(value: MaybePromise<T>): ValuePipe<T>;
 
 interface ValuePipe<T> {
   pipe<R>(fn: (x: T) => MaybePromise<R>): ValuePipe<R>;
@@ -134,10 +134,10 @@ import { asyncPipe } from "@thuum/piper";
 
 // Mix sync and async functions freely
 const { value } = asyncPipe(1)
-  .pipe(x => x + 1)                    // sync function
-  .pipe(async x => x * 2)              // async function
-  .pipe(x => x.toString())             // sync function
-  .pipe(async x => `Result: ${x}`);   // async function
+  .pipe((x) => x + 1) // sync function
+  .pipe(async (x) => x * 2) // async function
+  .pipe((x) => x.toString()) // sync function
+  .pipe(async (x) => `Result: ${x}`); // async function
 
 const result = await value; // "Result: 4"
 ```
@@ -148,8 +148,8 @@ const result = await value; // "Result: 4"
 import { asyncPipe } from "@thuum/piper";
 
 const { value } = asyncPipe(Promise.resolve(5))
-  .pipe(x => x + 1)           // 6
-  .pipe(async x => x * 2);    // 12
+  .pipe((x) => x + 1) // 6
+  .pipe(async (x) => x * 2); // 12
 
 const result = await value; // 12
 ```
@@ -163,7 +163,7 @@ Compose a reusable function from both sync and async transformations.
 ```typescript
 type MaybePromise<T> = T | Promise<T>;
 
-function asyncBuild<X>(): FunctionPipe<X, X>
+function asyncBuild<X>(): FunctionPipe<X, X>;
 
 interface FunctionPipe<X, Y> {
   pipe<Z>(fn: (y: Y) => MaybePromise<Z>): FunctionPipe<X, Z>;
@@ -178,10 +178,10 @@ import { asyncBuild } from "@thuum/piper";
 
 // Mix sync and async operations
 const { fn: fetchAndProcess } = asyncBuild<number>()
-  .pipe(async id => fetch(`/api/users/${id}`))    // async
-  .pipe(async response => response.json())         // async
-  .pipe(data => data.name)                         // sync
-  .pipe(name => name.toUpperCase());               // sync
+  .pipe(async (id) => fetch(`/api/users/${id}`)) // async
+  .pipe(async (response) => response.json()) // async
+  .pipe((data) => data.name) // sync
+  .pipe((name) => name.toUpperCase()); // sync
 
 const name = await fetchAndProcess(123);
 ```
@@ -189,6 +189,7 @@ const name = await fetchAndProcess(123);
 #### Why MaybePromise?
 
 The `MaybePromise<T>` type allows you to:
+
 - **Mix function types**: Use both sync and async functions in the same pipeline
 - **Optimize performance**: Use sync functions when possible, async only when needed
 - **Simplify code**: No need to wrap sync functions in `Promise.resolve()`
@@ -207,18 +208,18 @@ interface User {
   email: string;
 }
 
-const { value: summary } = pipe({ 
-  name: "Alice", 
-  age: 30, 
-  email: "alice@example.com" 
+const { value: summary } = pipe({
+  name: "Alice",
+  age: 30,
+  email: "alice@example.com",
 })
-  .pipe(user => ({ ...user, age: user.age + 1 }))
-  .pipe(user => ({ 
+  .pipe((user) => ({ ...user, age: user.age + 1 }))
+  .pipe((user) => ({
     fullName: user.name.toUpperCase(),
     isAdult: user.age >= 18,
-    contact: user.email
+    contact: user.email,
   }))
-  .pipe(data => `${data.fullName} (Adult: ${data.isAdult})`);
+  .pipe((data) => `${data.fullName} (Adult: ${data.isAdult})`);
 
 console.log(summary); // "ALICE (Adult: true)"
 ```
@@ -230,10 +231,10 @@ import { build } from "@thuum/piper";
 
 // Create a string sanitizer
 const { fn: sanitize } = build<string>()
-  .pipe(str => str.trim())
-  .pipe(str => str.toLowerCase())
-  .pipe(str => str.replace(/\s+/g, "-"))
-  .pipe(str => str.replace(/[^a-z0-9-]/g, ""));
+  .pipe((str) => str.trim())
+  .pipe((str) => str.toLowerCase())
+  .pipe((str) => str.replace(/\s+/g, "-"))
+  .pipe((str) => str.replace(/[^a-z0-9-]/g, ""));
 
 console.log(sanitize("  Hello World! 123  ")); // "hello-world-123"
 console.log(sanitize("TypeScript & Node.js")); // "typescript-nodejs"
@@ -249,13 +250,13 @@ interface ApiResponse {
 }
 
 const { fn: fetchUserData } = asyncBuild<number>()
-  .pipe(async userId => {
+  .pipe(async (userId) => {
     const response = await fetch(`/api/users/${userId}`);
     return response.json() as Promise<ApiResponse>;
   })
-  .pipe(response => response.data)              // sync
-  .pipe(data => data.map(item => item.value))   // sync
-  .pipe(values => values.join(", "));           // sync
+  .pipe((response) => response.data) // sync
+  .pipe((data) => data.map((item) => item.value)) // sync
+  .pipe((values) => values.join(", ")); // sync
 
 const result = await fetchUserData(42);
 ```
@@ -266,7 +267,7 @@ const result = await fetchUserData(42);
 import { asyncBuild } from "@thuum/piper";
 
 const { fn: safeFetch } = asyncBuild<string>()
-  .pipe(async url => {
+  .pipe(async (url) => {
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -275,14 +276,14 @@ const { fn: safeFetch } = asyncBuild<string>()
       return { error: error.message };
     }
   })
-  .pipe(result => {
-    if ('error' in result) {
+  .pipe((result) => {
+    if ("error" in result) {
       return `Error: ${result.error}`;
     }
     return `Success: ${JSON.stringify(result)}`;
   });
 
-const result = await safeFetch('https://api.example.com/data');
+const result = await safeFetch("https://api.example.com/data");
 ```
 
 ### Combining with @thuum/decor
@@ -296,7 +297,7 @@ const { fn: safeDivide } = build<{ a: number; b: number }>()
     if (b === 0) throw new Error("Division by zero");
     return a / b;
   })
-  .pipe(result => Math.round(result * 100) / 100);
+  .pipe((result) => Math.round(result * 100) / 100);
 
 // Wrap with attempt for error handling
 const divideSafe = attempt(safeDivide);
@@ -324,23 +325,29 @@ interface ProcessedData {
   category: string;
 }
 
-const { value } = asyncPipe<RawData[]>(
-  fetch('/api/data').then(r => r.json())
-)
-  .pipe(data => data.filter(item => item.value !== null))  // sync
-  .pipe(async data => {
+const { value } = asyncPipe<RawData[]>(fetch("/api/data").then((r) => r.json()))
+  .pipe((data) => data.filter((item) => item.value !== null)) // sync
+  .pipe(async (data) => {
     // Simulate async validation
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return data;
   })
-  .pipe(data => data.map(item => ({                        // sync
-    date: new Date(item.timestamp),
-    value: parseFloat(item.value),
-    category: parseFloat(item.value) > 100 ? 'high' : 'low'
-  })))
-  .pipe(data => data.sort((a, b) =>                        // sync
-    b.date.getTime() - a.date.getTime()
-  ));
+  .pipe((data) =>
+    data.map((item) => ({
+      // sync
+      date: new Date(item.timestamp),
+      value: parseFloat(item.value),
+      category: parseFloat(item.value) > 100 ? "high" : "low",
+    })),
+  )
+  .pipe((data) =>
+    data.sort(
+      (
+        a,
+        b, // sync
+      ) => b.date.getTime() - a.date.getTime(),
+    ),
+  );
 
 const processed: ProcessedData[] = await value;
 ```
@@ -354,30 +361,30 @@ import { pipe, build, asyncPipe, asyncBuild } from "@thuum/piper";
 
 // Sync pipe - types are automatically inferred at each step
 const { value } = pipe(42)
-  .pipe(x => x.toString())     // x: number, returns: string
-  .pipe(x => x.length)         // x: string, returns: number
-  .pipe(x => x > 1);           // x: number, returns: boolean
+  .pipe((x) => x.toString()) // x: number, returns: string
+  .pipe((x) => x.length) // x: string, returns: number
+  .pipe((x) => x > 1); // x: number, returns: boolean
 // value is inferred as boolean
 
 // Sync build
 const { fn } = build<string>()
-  .pipe(x => x.split(","))     // returns: string[]
-  .pipe(x => x.length)         // returns: number
-  .pipe(x => x * 2);           // returns: number
+  .pipe((x) => x.split(",")) // returns: string[]
+  .pipe((x) => x.length) // returns: number
+  .pipe((x) => x * 2); // returns: number
 // fn is inferred as (x: string) => number
 
 // Async pipe with MaybePromise
 const { value: asyncValue } = asyncPipe(42)
-  .pipe(x => x + 1)            // sync: returns number
-  .pipe(async x => x * 2)      // async: returns Promise<number>
-  .pipe(x => x.toString());    // sync: returns string
+  .pipe((x) => x + 1) // sync: returns number
+  .pipe(async (x) => x * 2) // async: returns Promise<number>
+  .pipe((x) => x.toString()); // sync: returns string
 // asyncValue is inferred as MaybePromise<string>
 
 // Async build with MaybePromise
 const { fn: asyncFn } = asyncBuild<number>()
-  .pipe(async x => x + 1)      // returns: MaybePromise<number>
-  .pipe(x => x * 2)            // returns: MaybePromise<number>
-  .pipe(x => x.toString());    // returns: MaybePromise<string>
+  .pipe(async (x) => x + 1) // returns: MaybePromise<number>
+  .pipe((x) => x * 2) // returns: MaybePromise<number>
+  .pipe((x) => x.toString()); // returns: MaybePromise<string>
 // asyncFn is inferred as (x: number) => MaybePromise<string>
 ```
 
@@ -386,26 +393,23 @@ const { fn: asyncFn } = asyncBuild<number>()
 ### Without Piper
 
 ```typescript
-const result = Math.round(
-  ((parseInt(
-    input.trim().toLowerCase()
-  ) + 10) * 2)
-);
+const result = Math.round((parseInt(input.trim().toLowerCase()) + 10) * 2);
 ```
 
 ### With Piper
 
 ```typescript
 const { value: result } = pipe(input)
-  .pipe(s => s.trim())
-  .pipe(s => s.toLowerCase())
-  .pipe(s => parseInt(s))
-  .pipe(n => n + 10)
-  .pipe(n => n * 2)
-  .pipe(n => Math.round(n));
+  .pipe((s) => s.trim())
+  .pipe((s) => s.toLowerCase())
+  .pipe((s) => parseInt(s))
+  .pipe((n) => n + 10)
+  .pipe((n) => n * 2)
+  .pipe((n) => Math.round(n));
 ```
 
 Benefits:
+
 - More readable left-to-right flow
 - Easier to debug (inspect intermediate values)
 - Simple to add/remove transformation steps
