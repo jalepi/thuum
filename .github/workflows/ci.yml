@@ -33,7 +33,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build packages
-        run: bun run --workspaces --sequential build
+        run: bun run build:ci
 
       - name: Lint code
         run: bun run lint
@@ -42,7 +42,7 @@ jobs:
         run: bun run format
 
       - name: Run tests with coverage
-        run: bunx vitest run --coverage
+        run: bun run test:ci
 
       - name: Report Coverage
         uses: davelosert/vitest-coverage-report-action@v2

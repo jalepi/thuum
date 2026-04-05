@@ -3,14 +3,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "bun --filter '*' build",
+    "build:ci": "bun run build && bun run format && bun run lint",
     "lint": "eslint . --cache --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --check --cache '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
-    "test:ci": "vitest run --mode=ci",
-    "test:all": "bun run --workspaces --sequential build && bun run format && bun run lint && bun run test"
+    "test:ci": "vitest run --mode=ci"
   },
   "keywords": [],
   "author": "",
