@@ -1,8 +1,12 @@
 import { describe, it, expect } from "bun:test";
 import { waitFor } from "../../../test-helpers";
-import withResolvers from "./with-resolvers";
+import withResolvers, { noop } from "./with-resolvers";
 
 describe("PromiseNext tests", () => {
+  it("should noop not throw", () => {
+    expect(noop).not.toThrow();
+  });
+
   it("should instantiate a promise resolver", () => {
     const { promise, resolve, reject } = withResolvers();
     expect(promise).toBeInstanceOf(Promise);

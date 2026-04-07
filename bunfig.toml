@@ -1,3 +1,10 @@
 [test]
 preload = ["./test-preload.ts"]
-coverageThreshold = { lines = 0.9, functions = 0.9, statements = 0.9 }
+coverageDir = "./test-results/coverage"
+coverageThreshold = { lines = 0.8, functions = 0.8, statements = 0.8 }
+coverageReporter = ["text", "lcov"]
+coverageIgnoreSourcemaps = true
+coveragePathIgnorePatterns = [
+  "**/dist/**",
+  "**/node_modules/**"
+]

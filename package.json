@@ -10,7 +10,7 @@
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "test": "bun test packages",
     "test:watch": "bun test packages --watch",
-    "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage --coverage-reporter=lcov --coverage-dir=./test-results/coverage"
+    "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage"
   },
   "keywords": [],
   "author": "",
