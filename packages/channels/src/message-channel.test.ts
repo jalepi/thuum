@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
-import { describe, it, expect, vi } from "bun:test";
-import { waitFor, useCleanup } from "../../../test-helpers";
+import { describe, it, expect, vi, onTestFinished } from "bun:test";
+import { waitFor } from "../../../test-helpers";
 import { createTransport } from "@thuum/transport";
 import { createChannel } from "./message-channel";
 import type { MessageSchema } from "./types";
@@ -30,7 +30,6 @@ const schemas: MessageSchema<TestMap> = {
 const transport = createTransport({ type: "window-custom-event", namespace: "test" });
 
 describe("message channel tests", () => {
-  const register = useCleanup();
   it("should create message channel", () => {
     const { receiver, sender } = createChannel({ transport, schemas });
     expect(receiver).toBeDefined();
@@ -47,7 +46,7 @@ describe("message channel tests", () => {
         spy(value);
       },
     });
-    register(() => {
+    onTestFinished(() => {
       disposable.dispose();
     });
 
@@ -101,7 +100,7 @@ describe("message channel tests", () => {
     };
 
     const subscription = receiver.on("foo", handlerSpy);
-    register(() => {
+    onTestFinished(() => {
       subscription.dispose();
     });
 

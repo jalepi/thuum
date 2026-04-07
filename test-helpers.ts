@@ -1,122 +1,64 @@
 /**
  * Shared test utilities that replace Vitest-specific APIs not available in bun:test.
  */
-import { afterEach, it } from "bun:test";
 
-// ---------------------------------------------------------------------------
-// waitFor – polls fn until it stops throwing, or the timeout expires.
-// Each iteration is also bounded by the remaining deadline so that a fn()
-// that awaits a never-settling promise does not block the timeout from firing.
-// Replaces vi.waitFor().
-// ---------------------------------------------------------------------------
+const TIMEOUT = 1000; // Default timeout for waitFor and waitUntil
+const INTERVAL = 10; // Default interval for waitFor and waitUntil
+
+/**
+ * Simple sleep function to wait for a specified number of milliseconds.
+ * @param ms - The number of milliseconds to wait.
+ * @returns A promise that resolves after the specified number of milliseconds.
+ */
+export async function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Waits for a function to complete without throwing an error, retrying until the timeout is reached.
+ * @param fn - The function to wait for.
+ * @param options - Optional settings for timeout and interval.
+ * @returns A promise that resolves when the function completes successfully or rejects if the timeout is reached.
+ */
 export async function waitFor(
   fn: () => void | Promise<void>,
-  options?: { timeout?: number; interval?: number },
+  { timeout = TIMEOUT, interval = INTERVAL }: { timeout?: number; interval?: number } = {},
 ): Promise<void> {
-  const timeout = options?.timeout ?? 1000;
-  const interval = options?.interval ?? 10;
   const deadline = Date.now() + timeout;
   let lastError: unknown = new Error("waitFor timed out");
 
-  while (true) {
+  while (Date.now() < deadline) {
     const remaining = deadline - Date.now();
-    if (remaining <= 0) break;
-
-    // Race fn() against the remaining deadline so a hanging await doesn't block forever.
-    const result = await new Promise<"done" | "retry">((resolve) => {
-      Promise.resolve()
-        .then(() => fn())
-        .then(() => resolve("done"))
-        .catch((e) => {
-          lastError = e;
-          resolve("retry");
-        });
-      setTimeout(() => resolve("retry"), remaining);
-    });
-
-    if (result === "done") return;
-
-    const now = Date.now();
-    if (now >= deadline) break;
-    await new Promise((r) => setTimeout(r, Math.min(interval, deadline - now)));
+    try {
+      await Promise.race([fn(), wait(remaining).then(() => Promise.reject(new Error("waitFor timed out")))]);
+      return;
+    } catch (e) {
+      lastError = e;
+    }
+    await wait(Math.min(interval, deadline - Date.now()));
   }
 
   throw lastError;
 }
 
-// ---------------------------------------------------------------------------
-// waitUntil – polls fn until it returns a truthy value, or the timeout expires.
-// Replaces vi.waitUntil().
-// ---------------------------------------------------------------------------
+/**
+ * Waits for a function to return a truthy value, retrying until the timeout is reached.
+ * @param fn - The function to wait for.
+ * @param options - Optional settings for timeout and interval.
+ * @returns A promise that resolves with the truthy value returned by the function or rejects if the timeout is reached.
+ */
 export async function waitUntil<T>(
   fn: () => T | Promise<T>,
-  options?: { timeout?: number; interval?: number },
+  { timeout = TIMEOUT, interval = INTERVAL }: { timeout?: number; interval?: number } = {},
 ): Promise<T> {
-  const timeout = options?.timeout ?? 1000;
-  const interval = options?.interval ?? 10;
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
-    const result = await fn();
-    if (result) return result;
-    await new Promise((r) => setTimeout(r, interval));
+    const remaining = deadline - Date.now();
+    const result = await Promise.race([fn(), wait(remaining).then(() => undefined as T)]);
+    if (result) {
+      return result;
+    }
+    await wait(Math.min(interval, deadline - Date.now()));
   }
   throw new Error("waitUntil timed out");
-}
-
-// ---------------------------------------------------------------------------
-// useCleanup – returns a register() helper and wires an afterEach teardown.
-// Replaces the onTestFinished context parameter from Vitest.
-//
-// Usage (per describe block or file):
-//   const register = useCleanup();
-//   it("...", async () => {
-//     register(someDisposable);   // function
-//     register(() => obj.dispose()); // or factory
-//   });
-// ---------------------------------------------------------------------------
-export function useCleanup(): (cleanup: (() => void) | (() => Promise<void>)) => void {
-  const pending: Array<(() => void) | (() => Promise<void>)> = [];
-  afterEach(async () => {
-    const fns = pending.splice(0);
-    for (const fn of fns) {
-      await fn();
-    }
-  });
-  return (cleanup) => {
-    pending.push(cleanup);
-  };
-}
-
-// ---------------------------------------------------------------------------
-// itEach – typed wrapper around it.each that matches Vitest's it.for signature.
-// Replaces it.for(array)(name, fn).
-//
-// Usage:
-//   itEach([1, 2, 3])("value is %s", (value) => { ... });
-//   itEach([{expected, input}])("case $expected", ({expected, input}) => { ... });
-// ---------------------------------------------------------------------------
-type AnyFn = (...args: never[]) => void | Promise<void>;
-
-export function itEach<T>(cases: ReadonlyArray<T>): (name: string, fn: (value: T) => void | Promise<void>) => void {
-  return (name, fn) => {
-    for (const c of cases) {
-      const title = formatTestName(name, c);
-      it(title, () => fn(c));
-    }
-  };
-}
-
-function formatTestName(name: string, value: unknown): string {
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    return name.replace("%s", String(value)).replace("[%s]", `[${String(value)}]`);
-  }
-  if (value !== null && typeof value === "object") {
-    let result = name;
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      result = result.replace(new RegExp(`\\$${key}`, "g"), String(val));
-      result = result.replace(new RegExp(`\\(\\$${key}\\)`, "g"), `(${String(val)})`);
-    }
-    return result;
-  }
-  return name;
 }

@@ -19,8 +19,8 @@
     "@thuum/transport": "workspace:*"
   },
   "devDependencies": {
-    "tslib": "catalog:ts",
-    "typescript": "catalog:ts"
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev"
   },
   "type": "module",
   "main": "dist/cjs/index.cjs",

@@ -1,9 +1,8 @@
-import { describe, expect } from "bun:test";
-import { itEach } from "../../../test-helpers";
+import { describe, expect, it } from "bun:test";
 import { isRequest, isResponse } from "./request-models";
 
 describe("request models tests", () => {
-  itEach([
+  it.each([
     { expected: true, request: { $request: "abc", $data: {} } },
     { expected: true, request: { $request: "abc", $data: "" } },
     { expected: true, request: { $request: "abc", $data: 1 } },
@@ -21,7 +20,7 @@ describe("request models tests", () => {
     );
   });
 
-  itEach([
+  it.each([
     { expected: true, response: { $result: { value: 1 } } },
     { expected: true, response: { $result: { error: 1 } } },
     { expected: false, response: undefined },

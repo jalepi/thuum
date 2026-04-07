@@ -10,42 +10,42 @@
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "test": "bun test packages",
     "test:watch": "bun test packages --watch",
-    "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage --coverage-reporter=lcov --coverage-dir=./test-results/coverage && bun run scripts/coverage-report.ts"
+    "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage --coverage-reporter=lcov --coverage-dir=./test-results/coverage"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@eslint/js": "catalog:lint",
-    "@happy-dom/global-registrator": "^20.8.9",
+    "@eslint/js": "catalog:dev",
+    "@happy-dom/global-registrator": "catalog:dev",
     "@types/bun": "latest",
-    "eslint": "catalog:lint",
-    "eslint-config-prettier": "catalog:lint",
-    "eslint-plugin-prettier": "catalog:lint",
-    "globals": "catalog:lint",
-    "happy-dom": "^17.6.3",
-    "prettier": "catalog:lint",
-    "tslib": "catalog:ts",
-    "typescript": "catalog:ts",
-    "typescript-eslint": "catalog:lint"
+    "eslint": "catalog:dev",
+    "eslint-config-prettier": "catalog:dev",
+    "eslint-plugin-prettier": "catalog:dev",
+    "globals": "catalog:dev",
+    "happy-dom": "catalog:dev",
+    "prettier": "catalog:dev",
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev",
+    "typescript-eslint": "catalog:dev"
   },
   "workspaces": {
     "packages": [
       "packages/*"
     ],
     "catalogs": {
-      "lint": {
+      "dev": {
         "@eslint/js": "^9.39.2",
+        "@happy-dom/global-registrator": "^20.8.9",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "globals": "^16.5.0",
+        "happy-dom": "^17.6.3",
         "prettier": "^3.7.4",
-        "typescript-eslint": "^8.50.0"
-      },
-      "ts": {
         "tslib": "^2.8.1",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.50.0"
       }
     }
   }

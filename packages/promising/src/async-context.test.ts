@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "bun:test";
-import { itEach, waitUntil } from "../../../test-helpers";
+import { waitUntil } from "../../../test-helpers";
 import createContext, { type AsyncContextEvent, type AsyncContextOptions } from "./async-context";
 
 describe("async context tests", () => {
-  itEach([1, Promise.resolve(1)] as const)("should await for it", async (r) => {
+  it.each([1, Promise.resolve(1)] as const)("should await for it", async (r) => {
     const watch = vi.fn();
     const ctx = createContext({ watch });
     const p = ctx.run("", () => r);

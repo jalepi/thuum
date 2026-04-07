@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
-import { describe, it, expect, vi } from "bun:test";
-import { useCleanup } from "../../../test-helpers";
+import { describe, it, expect, vi, onTestFinished } from "bun:test";
 import { createTransport } from "@thuum/transport";
 import type { FromRequestChannel, RequestSchema } from "./types";
 import { createChannel } from "./request-channel";
@@ -42,7 +41,6 @@ const schemas: RequestSchema<TestRequestMap> = {
 const transport = createTransport({ type: "window-custom-event", namespace: "test" });
 
 describe("request channel tests", () => {
-  const register = useCleanup();
   it("should create channel", () => {
     const { receiver, sender } = createChannel({ schemas, transport });
     expect(receiver).toBeDefined();
@@ -64,7 +62,7 @@ describe("request channel tests", () => {
 
     const disposable = channel1.receiver.on("foo", handler);
 
-    register(() => {
+    onTestFinished(() => {
       disposable.dispose();
     });
     const response = await channel2.sender.send("foo", { name: "Foo" });
@@ -92,7 +90,7 @@ describe("request channel tests", () => {
     const unsubscribe = transport.receiver.on("foo", () => {
       transport.sender.send(`foo:${id}`, { invalid: true });
     });
-    register(unsubscribe);
+    onTestFinished(unsubscribe);
 
     const result = await sender.send("foo", { name: "Foo" });
 
@@ -108,7 +106,7 @@ describe("request channel tests", () => {
     const unsubscribe = transport.receiver.on("foo", () => {
       transport.sender.send(`foo:${id}`, { $result: { value: { invalid: true } } });
     });
-    register(unsubscribe);
+    onTestFinished(unsubscribe);
 
     const result = await sender.send("foo", { name: "Foo" });
 
