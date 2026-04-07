@@ -1,4 +1,5 @@
-import { describe, it, expect, assert } from "vitest";
+import { describe, it, expect } from "bun:test";
+import assert from "node:assert";
 import { attempt } from "./attempt";
 
 describe("attempt async decorator tests", () => {

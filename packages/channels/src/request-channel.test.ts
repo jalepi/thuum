@@ -1,4 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+/// <reference lib="dom" />
+
+import { describe, it, expect, vi, onTestFinished } from "bun:test";
 import { createTransport } from "@thuum/transport";
 import type { FromRequestChannel, RequestSchema } from "./types";
 import { createChannel } from "./request-channel";
@@ -45,7 +47,7 @@ describe("request channel tests", () => {
     expect(sender).toBeDefined();
   });
 
-  it("should sender.send return valid result", async ({ onTestFinished }) => {
+  it("should sender.send return valid result", async () => {
     const channel1 = createChannel({ schemas, transport });
     const channel2 = createChannel({ schemas, transport });
 
@@ -79,7 +81,7 @@ describe("request channel tests", () => {
     expect({ error: new Error(`Topic "invalid topic" not found in schemas`) }).toMatchObject(result);
   });
 
-  it("should sender receive invalid response return error", async ({ onTestFinished }) => {
+  it("should sender receive invalid response return error", async () => {
     const id = utils.uniqueId();
     vi.spyOn(utils, "uniqueId").mockImplementationOnce(() => id);
 
@@ -95,7 +97,7 @@ describe("request channel tests", () => {
     expect({ error: new Error(`Topic "foo:${id}" received invalid response`) }).toMatchObject(result);
   });
 
-  it("should receive invalid response result value return error", async ({ onTestFinished }) => {
+  it("should receive invalid response result value return error", async () => {
     const id = utils.uniqueId();
     vi.spyOn(utils, "uniqueId").mockImplementationOnce(() => id);
 

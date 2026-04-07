@@ -32,21 +32,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build packages
+      - name: Run build and linters
         run: bun run build:ci
 
-      - name: Lint code
-        run: bun run lint
-
-      - name: Format check
-        run: bun run format
-
-      - name: Run tests with coverage
+      - name: Run tests
         run: bun run test:ci
-
-      - name: Report Coverage
-        uses: davelosert/vitest-coverage-report-action@v2
-        if: always()
-        with:
-          json-summary-path: "./test-results/coverage/coverage-summary.json"
-          json-final-path: "./test-results/coverage/coverage-final.json"

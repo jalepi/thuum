@@ -44,14 +44,11 @@ bun run test:watch
 # Run tests once
 bun run test
 
-# Run tests with UI
-bun run test:ui
-
-# Run all tests in CI mode
+# Run all tests in CI mode (with coverage and JUnit reporting)
 bun run test:ci
 
-# Run full test suite (build, format, lint, test)
-bun run test:all
+# Run full CI pipeline (build, test, format, lint)
+bun run build:ci
 ```
 
 ## Packages
@@ -264,7 +261,7 @@ thuum/
 ├── package.json        # Workspace root package
 ├── package.json        # Workspace configuration (workspaces)
 ├── tsconfig.base.json  # Base TypeScript config
-├── vitest.config.mjs   # Vitest configuration
+├── bunfig.toml         # Bun test configuration
 └── README.md           # This file
 ```
 
@@ -281,9 +278,8 @@ bun run format:fix      # Auto-fix formatting issues
 # Testing
 bun run test            # Run tests once
 bun run test:watch      # Run tests in watch mode
-bun run test:ui         # Run tests with UI
-bun run test:ci         # Run tests in CI mode
-bun run test:all        # Build, format, lint, and test
+bun run test:ci         # Run tests in CI mode (with coverage)
+bun run build:ci        # Full CI pipeline (build, test, format, lint)
 
 # Building
 bun run --workspaces --sequential build # Build all packages
@@ -311,7 +307,7 @@ bun run build:cjs       # Build CJS only
 - **Package Manager**: Bun with workspaces
 - **Language**: TypeScript 5.8+
 - **Build**: TypeScript compiler (dual ESM/CJS output)
-- **Testing**: Vitest with coverage
+- **Testing**: Bun test runner with built-in coverage
 - **Linting**: ESLint 9 with TypeScript support
 - **Formatting**: Prettier 3
 - **Dependency Management**: Explicit semver ranges in workspace package manifests
@@ -321,7 +317,7 @@ bun run build:cjs       # Build CJS only
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Ensure tests pass (`bun run test:all`)
+4. Ensure tests pass (`bun run build:ci`)
 5. Commit your changes (`git commit -m 'Add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
@@ -391,21 +387,27 @@ bun add -D typescript tslib
 
 Create `tsconfig.base.json` with shared configuration.
 
-### Vitest
+### Testing
 
-Install Vitest:
+Bun includes a built-in test runner (`bun:test`) with coverage support:
 
 ```bash
-bun add -D vitest @vitest/coverage-v8 happy-dom
+bun add -D @happy-dom/global-registrator
 ```
 
-Add `vitest.workspace.mjs` and `vitest.config.mjs` files.
+Create `bunfig.toml` with test configuration:
+
+```toml
+[test]
+preload = ["./test-preload.ts"]
+coverageThreshold = { lines = 0.9, functions = 0.9, statements = 0.9 }
+```
 
 Add scripts to `package.json`:
 
 ```json
 "scripts": {
-  "test": "vitest",
-  "test:ci": "vitest run --mode=ci"
+  "test": "bun test packages",
+  "test:ci": "bun test packages --coverage --coverage-reporter=lcov"
 }
 ```

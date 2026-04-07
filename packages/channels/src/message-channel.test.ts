@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+/// <reference lib="dom" />
+
+import { describe, it, expect, vi, onTestFinished } from "bun:test";
+import { waitFor } from "../../../test-helpers";
 import { createTransport } from "@thuum/transport";
 import { createChannel } from "./message-channel";
 import type { MessageSchema } from "./types";
@@ -33,7 +36,7 @@ describe("message channel tests", () => {
     expect(sender).toBeDefined();
   });
 
-  it("should sender.send sends and receiver.on receive messages", async ({ onTestFinished }) => {
+  it("should sender.send sends and receiver.on receive messages", async () => {
     const { receiver } = createChannel({ transport, schemas });
     const { sender } = createChannel({ transport, schemas });
     const spy = vi.fn();
@@ -49,7 +52,7 @@ describe("message channel tests", () => {
 
     sender.send("foo", { name: "Foo" });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(spy).toHaveBeenCalledWith({ name: "Foo" });
     });
   });
@@ -88,7 +91,7 @@ describe("message channel tests", () => {
     }).toThrowError(new Error(`Topic "invalid topic" not found in schemas`));
   });
 
-  it("should receiver.on invalid message calls back onerror", async ({ onTestFinished }) => {
+  it("should receiver.on invalid message calls back onerror", async () => {
     const { receiver } = createChannel({ transport, schemas });
 
     const handlerSpy = {
@@ -103,7 +106,7 @@ describe("message channel tests", () => {
 
     transport.sender.send("foo", { invalid: "foo" });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(handlerSpy.onerror).toHaveBeenCalledWith({
         error: new Error("Failed to parse message"),
         trace: [new Error("name is not in data")],

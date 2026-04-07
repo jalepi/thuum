@@ -9,6 +9,11 @@ export type PromiseResolver<T> = Readonly<{
   promise: Promise<T>;
 }>;
 
+/** No operation function */
+export const noop = (): void => {
+  /** noop */
+};
+
 /**
  * Provides Promise features until widely available https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers
  * Creates a promise and its resolve and reject functions separately
@@ -31,8 +36,8 @@ export type PromiseResolver<T> = Readonly<{
  * ```
  */
 const withResolvers = <T = void>(): PromiseResolver<T> => {
-  let resolve: (v: T) => void = () => undefined;
-  let reject: (reason: unknown) => void = () => undefined;
+  let resolve: (v: T) => void = noop;
+  let reject: (reason: unknown) => void = noop;
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;

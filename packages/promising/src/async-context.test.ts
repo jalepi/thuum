@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
+import { waitUntil } from "../../../test-helpers";
 import createContext, { type AsyncContextEvent, type AsyncContextOptions } from "./async-context";
 
 describe("async context tests", () => {
-  it.for([1, Promise.resolve(1)] as const)("should await for it", async (r) => {
+  it.each([1, Promise.resolve(1)] as const)("should await for it", async (r) => {
     const watch = vi.fn();
     const ctx = createContext({ watch });
     const p = ctx.run("", () => r);
@@ -27,7 +28,7 @@ describe("async context tests", () => {
     r1.resolve(1);
 
     // assert
-    await vi.waitUntil(() => spy.mock.calls.length === 3);
+    await waitUntil(() => spy.mock.calls.length === 3);
     expect(spy.mock.calls).toMatchObject([[1], [2], [3]]);
     expect(await p1).toBe(1);
     expect(await p2).toBe(2);
@@ -45,7 +46,7 @@ describe("async context tests", () => {
     ] satisfies [AsyncContextEvent][]);
   });
 
-  it("should run successes and failures", async () => {
+  it("should run successes and failures", () => {
     const watch = vi.fn();
     const ctx = createContext({ watch });
     const [r1, r2, r3] = [withResolvers(), withResolvers(), withResolvers()];
@@ -54,15 +55,22 @@ describe("async context tests", () => {
       ctx.run(`r2`, () => r2.promise),
       ctx.run(`r3`, () => r3.promise),
     ];
+    // Silence inner promise rejections before rejecting; results are checked via p1/p2/p3.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    r2.promise.catch(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    r3.promise.catch(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    ctx.continuation.catch(() => {});
     r1.resolve(1);
     r2.reject(new Error("2"));
     r3.reject(new Error("3"));
 
-    await expect(p1).resolves.toBe(1);
-    await expect(p2).rejects.toThrowError(new Error("2"));
-    await expect(p3).rejects.toThrowError(new Error("3"));
+    expect(p1).resolves.toBe(1);
+    expect(p2).rejects.toThrowError(new Error("2"));
+    expect(p3).rejects.toThrowError(new Error("3"));
 
-    await expect(ctx.continuation).rejects.toThrowError(new Error("3"));
+    expect(ctx.continuation).rejects.toThrowError(new Error("3"));
   });
 });
 

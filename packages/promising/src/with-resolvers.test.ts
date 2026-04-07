@@ -1,7 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
-import withResolvers from "./with-resolvers";
+import { describe, it, expect } from "bun:test";
+import { waitFor } from "../../../test-helpers";
+import withResolvers, { noop } from "./with-resolvers";
 
 describe("PromiseNext tests", () => {
+  it("should noop not throw", () => {
+    expect(noop).not.toThrow();
+  });
+
   it("should instantiate a promise resolver", () => {
     const { promise, resolve, reject } = withResolvers();
     expect(promise).toBeInstanceOf(Promise);
@@ -9,65 +14,65 @@ describe("PromiseNext tests", () => {
     expect(reject).toBeInstanceOf(Function);
   });
 
-  it("should initial promise be pending", async () => {
+  it("should initial promise be pending", () => {
     const { promise } = withResolvers();
 
-    await expect(async () => {
-      await vi.waitFor(async () => {
+    expect(
+      waitFor(async () => {
         await promise;
-      });
-    }).rejects.toThrow();
+      }),
+    ).rejects.toThrow();
   });
 
-  it("should resolve a promise", async () => {
+  it("should resolve a promise", () => {
     const { promise, resolve } = withResolvers<number>();
 
     resolve(42);
 
-    await expect(promise).resolves.toBe(42);
+    expect(promise).resolves.toBe(42);
   });
 
-  it("should reject a promise", async () => {
+  it("should reject a promise", () => {
     const { promise, reject } = withResolvers<number>();
     const reason = new Error("problem");
 
     reject(reason);
 
-    await expect(promise).rejects.toThrow(reason);
+    expect(promise).rejects.toThrow(reason);
   });
 
-  it("should not reject a resolved promise", async () => {
+  it("should not reject a resolved promise", () => {
     const { promise, resolve, reject } = withResolvers<number>();
     resolve(42);
-    await expect(promise).resolves.toBe(42);
+    expect(promise).resolves.toBe(42);
 
     reject(new Error("problem"));
-    await expect(promise).resolves.toBe(42);
+    expect(promise).resolves.toBe(42);
   });
 
-  it("should not resolve a rejected promise", async () => {
+  it("should not resolve a rejected promise", () => {
     const { promise, resolve, reject } = withResolvers<number>();
     reject(new Error("problem"));
-    await expect(promise).rejects.toThrow();
+    expect(promise).rejects.toThrow();
 
     resolve(42);
-    await expect(promise).rejects.toThrow();
+    expect(promise).rejects.toThrow();
   });
 
-  it("should not affect a settled promise", async () => {
+  it("should not affect a settled promise", () => {
     const { promise, resolve, reject } = withResolvers<number>();
     resolve(42);
     reject(new Error());
     resolve(69);
     reject(new Error());
 
-    await expect(promise).resolves.toBe(42);
+    expect(promise).resolves.toBe(42);
   });
 
-  it("should resolve to undefined accepting zero arguments for void", async () => {
+  it("should resolve to undefined accepting zero arguments for void", () => {
     const { promise, resolve } = withResolvers();
     resolve();
 
-    await expect(promise).resolves.toBe(undefined);
+    expect(promise).resolves.toBe(undefined);
   });
 });

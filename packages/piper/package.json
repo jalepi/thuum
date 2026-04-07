@@ -25,8 +25,8 @@
     "build:cjs": "tsc -p ./tsconfig.cjs.json"
   },
   "devDependencies": {
-    "tslib": "catalog:ts",
-    "typescript": "catalog:ts"
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev"
   },
   "type": "module",
   "main": "dist/cjs/index.js",

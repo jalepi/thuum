@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import build from "./build";
 
 describe("builder tests", () => {
   it("should build returns builder", () => {
     const { fn, pipe } = build<unknown>();
 
-    expect(fn).toBeTypeOf("function");
-    expect(pipe).toBeTypeOf("function");
+    expect(typeof fn).toBe("function");
+    expect(typeof pipe).toBe("function");
   });
 
   it("should build returns identity", () => {

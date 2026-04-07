@@ -1,11 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+/// <reference lib="dom" />
+
+import { describe, expect, vi, it, onTestFinished } from "bun:test";
+import { waitFor } from "../../../test-helpers";
 import { createTransport, type TransportType } from "./transport-factory";
 
 const types = ["window-custom-event"] as const satisfies TransportType[];
 const namespace = "test";
 
 describe("transport factory tests", () => {
-  it.for(["abc", "broadcast-message-event", "window-message-event"])(
+  it.each(["abc", "broadcast-message-event", "window-message-event"])(
     "[%s] should create with invalid transport type throw error",
     (type) => {
       expect(() => {
@@ -14,7 +17,7 @@ describe("transport factory tests", () => {
     },
   );
 
-  it.for(types)("[%s] should create transport", (type) => {
+  it.each(types)("[%s] should create transport", (type) => {
     const { receiver, sender } = createTransport({ type, namespace });
 
     expect(receiver).toBeDefined();
@@ -23,7 +26,7 @@ describe("transport factory tests", () => {
     expect(sender).toHaveProperty("send");
   });
 
-  it.for(types)("[%s] should send and receive message", async (type, { onTestFinished }) => {
+  it.each(types)("[%s] should send and receive message", async (type) => {
     const actorA = createTransport({ type, namespace });
     const actorB = createTransport({ type, namespace });
     expect(actorA).not.toBe(actorB);
@@ -33,12 +36,12 @@ describe("transport factory tests", () => {
 
     actorA.sender.send("foo", { name: "Foo" });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(spy).toHaveBeenCalledWith({ name: "Foo" });
     });
   });
 
-  it.for(types)("[%s] should ping pong", async (type, { onTestFinished }) => {
+  it.each(types)("[%s] should ping pong", async (type) => {
     const actorA = createTransport({ type, namespace });
     const actorB = createTransport({ type, namespace });
     expect(actorA).not.toBe(actorB);
@@ -53,7 +56,7 @@ describe("transport factory tests", () => {
 
     actorA.sender.send("ping", 1);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(spy).toHaveBeenCalledWith(2);
     });
   });
