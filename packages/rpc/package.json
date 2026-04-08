@@ -1,0 +1,53 @@
+{
+  "name": "@thuum/rpc",
+  "version": "0.0.0",
+  "description": "Type-safe RPC channels with pluggable transports",
+  "keywords": [
+    "rpc",
+    "channels",
+    "transport",
+    "messaging",
+    "request-response",
+    "typed",
+    "typescript"
+  ],
+  "author": "Jalepi",
+  "license": "ISC",
+  "homepage": "https://jalepi.github.io/thuum/packages/rpc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalepi/thuum.git",
+    "directory": "packages/rpc"
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+  },
+  "devDependencies": {
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev"
+  },
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "package.json"
+  ]
+}

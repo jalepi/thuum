@@ -69,6 +69,14 @@
         "typescript": "catalog:dev",
       },
     },
+    "packages/rpc": {
+      "name": "@thuum/rpc",
+      "version": "0.0.0",
+      "devDependencies": {
+        "tslib": "catalog:dev",
+        "typescript": "catalog:dev",
+      },
+    },
     "packages/transport": {
       "name": "@thuum/transport",
       "version": "0.0.0",
@@ -371,6 +379,8 @@
     "@thuum/piper": ["@thuum/piper@workspace:packages/piper"],
 
     "@thuum/promising": ["@thuum/promising@workspace:packages/promising"],
+
+    "@thuum/rpc": ["@thuum/rpc@workspace:packages/rpc"],
 
     "@thuum/transport": ["@thuum/transport@workspace:packages/transport"],
 
