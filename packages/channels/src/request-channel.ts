@@ -4,6 +4,11 @@ import { uniqueId } from "./utils";
 import { isRequest, isResponse, type RequestModel } from "./request-models";
 import type { RequestChannel, RequestMapFromSchema, RequestReceiver, RequestSchema, RequestSender } from "./types";
 
+/**
+ * Creates a request receiver that listens for incoming requests, validates them, and sends responses back through the transport.
+ * @param options - The schemas and transport to use
+ * @returns A {@link RequestReceiver} bound to the given schemas and transport
+ */
 export function createReceiver<Schema extends RequestSchema, Map extends RequestMapFromSchema<Schema>>({
   schemas,
   transport,
@@ -55,6 +60,11 @@ export function createReceiver<Schema extends RequestSchema, Map extends Request
   };
 }
 
+/**
+ * Creates a request sender that validates outgoing requests, sends them, and listens for the correlated response.
+ * @param options - The schemas and transport to use
+ * @returns A {@link RequestSender} bound to the given schemas and transport
+ */
 export function createSender<
   Schema extends RequestSchema,
   Map extends RequestMapFromSchema<Schema> = RequestMapFromSchema<Schema>,
@@ -117,6 +127,34 @@ export function createSender<
   };
 }
 
+/**
+ * Creates a request/response channel with a paired sender and receiver, both validated against the provided schemas.
+ * @param options - The schemas defining allowed topics and the transport for message delivery
+ * @returns A {@link RequestChannel} with `sender` and `receiver` properties
+ *
+ * @example
+ * ```ts
+ * import { createRequestChannel } from "@thuum/channels";
+ * import { createTransport } from "@thuum/transport";
+ *
+ * const channel = createRequestChannel({
+ *   schemas: {
+ *     add: {
+ *       request: { parse: (data) => ({ value: data }) },
+ *       response: { parse: (data) => ({ value: data }) },
+ *     },
+ *   },
+ *   transport: createTransport({ type: "window-custom-event", namespace: "app" }),
+ * });
+ *
+ * channel.receiver.on("add", {
+ *   ondata: async ({ value }) => value.a + value.b,
+ * });
+ *
+ * const result = await channel.sender.send("add", { a: 2, b: 3 });
+ * // { value: 5 }
+ * ```
+ */
 export function createChannel<Schema extends RequestSchema, Map extends RequestMapFromSchema<Schema>>({
   schemas,
   transport,

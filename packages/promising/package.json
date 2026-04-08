@@ -1,8 +1,15 @@
 {
   "name": "@thuum/promising",
   "version": "0.0.0",
-  "description": "Promising utilities for promises",
-  "keywords": [],
+  "description": "Async context management and Promise utilities",
+  "keywords": [
+    "promise",
+    "async",
+    "context",
+    "with-resolvers",
+    "sequential",
+    "typescript"
+  ],
   "author": "Jalepi",
   "license": "ISC",
   "repository": {
@@ -20,7 +27,7 @@
     "typescript": "catalog:dev"
   },
   "type": "module",
-  "main": "dist/cjs/index.cjs",
+  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
@@ -38,6 +45,7 @@
   "files": [
     "dist",
     "src",
+    "README.md",
     "package.json"
   ]
 }

@@ -1,5 +1,6 @@
 {
   "name": "@thuum/example",
+  "private": true,
   "version": "0.0.0",
   "description": "Typescript example library",
   "keywords": [],

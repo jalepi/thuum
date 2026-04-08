@@ -131,3 +131,7 @@ dist
 
 # testing
 test-results
+
+# Astro (docs site)
+docs/.astro
+docs/dist
