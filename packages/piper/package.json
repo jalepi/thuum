@@ -14,6 +14,7 @@
   ],
   "author": "Jalepi",
   "license": "ISC",
+  "homepage": "https://jalepi.github.io/thuum/packages/piper",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jalepi/thuum.git",

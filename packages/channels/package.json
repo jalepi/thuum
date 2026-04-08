@@ -12,6 +12,7 @@
   ],
   "author": "Jalepi",
   "license": "ISC",
+  "homepage": "https://jalepi.github.io/thuum/packages/channels",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jalepi/thuum.git",
