@@ -33,7 +33,8 @@
   },
   "workspaces": {
     "packages": [
-      "packages/*"
+      "packages/*",
+      "docs"
     ],
     "catalogs": {
       "dev": {
