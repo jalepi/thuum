@@ -2,6 +2,11 @@ import type { MessageTransport } from "@thuum/transport";
 import { traceError } from "./result";
 import type { MessageChannel, MessageMapFromSchema, MessageSchema, MessageSender, MessageReceiver } from "./types";
 
+/**
+ * Creates a message receiver that subscribes to topics and validates incoming messages against the schema.
+ * @param options - The schemas and transport to use
+ * @returns A {@link MessageReceiver} bound to the given schemas and transport
+ */
 export function createReceiver<
   Schema extends MessageSchema,
   Map extends MessageMapFromSchema<Schema> = MessageMapFromSchema<Schema>,
@@ -34,6 +39,11 @@ export function createReceiver<
   };
 }
 
+/**
+ * Creates a message sender that validates outgoing messages against the schema before sending.
+ * @param options - The schemas and transport to use
+ * @returns A {@link MessageSender} bound to the given schemas and transport
+ */
 export function createSender<
   Schema extends MessageSchema,
   Map extends MessageMapFromSchema<Schema> = MessageMapFromSchema<Schema>,
@@ -60,6 +70,30 @@ export function createSender<
   };
 }
 
+/**
+ * Creates a message channel with a paired sender and receiver, both validated against the provided schemas.
+ * @param options - The schemas defining allowed topics and the transport for message delivery
+ * @returns A {@link MessageChannel} with `sender` and `receiver` properties
+ *
+ * @example
+ * ```ts
+ * import { createMessageChannel } from "@thuum/channels";
+ * import { createTransport } from "@thuum/transport";
+ *
+ * const channel = createMessageChannel({
+ *   schemas: {
+ *     greeting: { message: { parse: (data) => ({ value: data }) } },
+ *   },
+ *   transport: createTransport({ type: "window-custom-event", namespace: "app" }),
+ * });
+ *
+ * channel.receiver.on("greeting", {
+ *   ondata: ({ value }) => console.log(value),
+ * });
+ *
+ * channel.sender.send("greeting", { text: "Hello!" });
+ * ```
+ */
 export function createChannel<Schema extends MessageSchema, Map extends MessageMapFromSchema<Schema>>({
   schemas,
   transport,

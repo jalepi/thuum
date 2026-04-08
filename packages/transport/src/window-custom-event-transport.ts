@@ -1,5 +1,11 @@
 import type { MessageMap, MessageTransport } from "./types";
 
+/**
+ * Creates a {@link MessageTransport} backed by `window` `CustomEvent` dispatching.
+ * Messages are namespaced as `"namespace:topic"` event types.
+ * @param options - Configuration with `namespace` for event scoping
+ * @returns A frozen {@link MessageTransport} using `window.addEventListener` / `window.dispatchEvent`
+ */
 export function createTransport<Map extends MessageMap = MessageMap>({
   namespace,
 }: {

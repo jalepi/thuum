@@ -1,11 +1,13 @@
+/** A value that may or may not be wrapped in a Promise. */
 type MaybePromise<T> = T | Promise<T>;
 
-/** Pipe hold a value that can be piped through another pipe */
+/** A chainable wrapper that transforms a value through successive sync or async functions. */
 type ValuePipe<T> = {
   pipe: <const R>(fn: (x: T) => MaybePromise<R>) => ValuePipe<R>;
   readonly value: MaybePromise<T>;
 };
 
+/** Factory function that initializes an async {@link ValuePipe} from an initial value. */
 type PipeVal = <const T>(value: MaybePromise<T>) => ValuePipe<T>;
 
 /**

@@ -1,9 +1,10 @@
-/** Pipe hold a value that can be piped through another pipe */
+/** A chainable wrapper that transforms a value through successive functions. */
 type ValuePipe<T> = {
   pipe: <const R>(fn: (x: T) => R) => ValuePipe<R>;
   readonly value: T;
 };
 
+/** Factory function that initializes a {@link ValuePipe} from an initial value. */
 type PipeVal = <const T>(value: T) => ValuePipe<T>;
 
 /**

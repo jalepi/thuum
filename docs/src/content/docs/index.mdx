@@ -1,0 +1,39 @@
+---
+title: Thuum
+description: A collection of focused, type-safe TypeScript libraries for functional programming, messaging, and more.
+template: splash
+hero:
+  tagline: Type-safe TypeScript libraries for functional programming, error handling, messaging, and async patterns.
+  actions:
+    - text: Get Started
+      link: /thuum/getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/jalepi/thuum
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+  <Card title="@thuum/piper" icon="rocket">
+    Functional pipe operators and function composition with full async support. [Learn more →](/thuum/packages/piper/)
+  </Card>
+  <Card title="@thuum/decor" icon="shield">
+    Function decorators for error handling and observability. Wrap any function in try-catch or tracing with a single
+    call. [Learn more →](/thuum/packages/decor/)
+  </Card>
+  <Card title="@thuum/promising" icon="clock">
+    Async context management and Promise utilities including `withResolvers` and sequential execution contexts. [Learn
+    more →](/thuum/packages/promising/)
+  </Card>
+  <Card title="@thuum/transport" icon="puzzle">
+    Abstract message transport layer with pluggable implementations including window CustomEvent support. [Learn more
+    →](/thuum/packages/transport/)
+  </Card>
+  <Card title="@thuum/channels" icon="comment">
+    Type-safe message and request/response channels with schema validation built on top of the transport layer. [Learn
+    more →](/thuum/packages/channels/)
+  </Card>
+</CardGrid>

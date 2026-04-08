@@ -8,6 +8,7 @@ Thuum is a collection of focused, type-safe TypeScript libraries designed to enh
 
 - **[@thuum/decor](#thuum-decor)** - Function decorators for error handling and observability
 - **[@thuum/piper](#thuum-piper)** - Functional pipe operators and function chaining with async support
+- **[@thuum/promising](#thuum-promising)** - Async context management and Promise utilities
 - **[@thuum/transport](#thuum-transport)** - Abstract message transport layer
 - **[@thuum/channels](#thuum-channels)** - Type-safe message and request/response channels
 - **[@thuum/example](#thuum-example)** - Example package template
@@ -150,6 +151,35 @@ const { fn: fetchUser } = asyncBuild<number>()
 const userName = await fetchUser(123);
 ```
 
+### @thuum/promising
+
+Async context management and Promise utilities.
+
+#### Features
+
+- **`withResolvers<T>()`** - Create a promise with externally accessible resolve/reject functions
+- **`createContext(options)`** - Sequential async execution context with lifecycle monitoring
+
+#### Example
+
+```typescript
+import { createContext, withResolvers } from "@thuum/promising";
+
+// withResolvers — control promise resolution externally
+const { promise, resolve } = withResolvers<number>();
+setTimeout(() => resolve(42), 100);
+const value = await promise; // 42
+
+// createContext — ensure sequential async execution
+const ctx = createContext({
+  watch: (event) => console.log(`[${event.type}] ${event.name}`),
+});
+
+ctx.run("first", async () => await fetchFirst());
+ctx.run("second", async () => await fetchSecond());
+// "second" always waits for "first" to complete
+```
+
 ### @thuum/transport
 
 Abstract message transport layer providing a unified interface for message passing.
@@ -257,6 +287,7 @@ thuum/
 │   ├── decor/          # Function decorators
 │   ├── example/        # Example package
 │   ├── piper/          # Pipe utilities
+│   ├── promising/      # Promise utilities
 │   └── transport/      # Transport layer
 ├── package.json        # Workspace root package
 ├── package.json        # Workspace configuration (workspaces)
