@@ -1,8 +1,15 @@
 {
   "name": "@thuum/channels",
   "version": "0.0.0",
-  "description": "Thuum channels library",
-  "keywords": [],
+  "description": "Type-safe message and request/response channels for inter-component communication",
+  "keywords": [
+    "channels",
+    "messaging",
+    "request-response",
+    "pubsub",
+    "typed",
+    "typescript"
+  ],
   "author": "Jalepi",
   "license": "ISC",
   "repository": {
@@ -23,7 +30,7 @@
     "typescript": "catalog:dev"
   },
   "type": "module",
-  "main": "dist/cjs/index.cjs",
+  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
@@ -41,6 +48,7 @@
   "files": [
     "dist",
     "src",
+    "README.md",
     "package.json"
   ]
 }
