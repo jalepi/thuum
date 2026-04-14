@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 import { describe, it, expect, vi, onTestFinished } from "bun:test";
 import { waitFor } from "../../../test-helpers";
 import { createTransport } from "@thuum/transport";
