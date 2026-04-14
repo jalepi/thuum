@@ -17,7 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "verbatimModuleSyntax": true,
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "types": ["bun"]
   },
   "include": ["${configDir}/src"],
   "exclude": ["${configDir}/node_modules", "${configDir}/dist"]
