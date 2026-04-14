@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 import { describe, expect, vi, it, onTestFinished } from "bun:test";
 import { waitFor } from "../../../test-helpers";
 import { createTransport, type TransportType } from "./transport-factory";

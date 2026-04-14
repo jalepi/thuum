@@ -5,8 +5,8 @@
   "scripts": {
     "build": "bun --verbose --filter '*' build",
     "build:ci": "bun run build && bun run format && bun run lint",
-    "lint": "eslint . --cache --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --check --cache '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --check '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "format:fix": "prettier --write '**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx,json}'",
     "test": "bun test packages",
     "test:watch": "bun test packages --watch",
@@ -48,8 +48,8 @@
         "happy-dom": "^20.9.0",
         "prettier": "^3.8.2",
         "tslib": "^2.8.1",
-        "typescript": "^5.9.3",
-        "typescript-eslint": "^8.50.2"
+        "typescript": "^6.0.2",
+        "typescript-eslint": "^8.58.2"
       }
     }
   }

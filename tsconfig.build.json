@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "rootDir": "${configDir}/src"
+  },
   "exclude": [
     "${configDir}/**/*.test.ts",
     "${configDir}/**/*.spec.ts",
