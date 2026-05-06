@@ -4,6 +4,11 @@ import type { StandardSchemaV1 } from "./standard-schema-v1";
 type MaybePromise<T> = T | Promise<T>;
 
 /** Wrapper for a successful value. */
+interface Nil {
+  readonly data?: never;
+}
+
+/** Wrapper for a successful value. */
 interface Val<T> {
   readonly data: T;
 }
@@ -12,6 +17,11 @@ interface Val<T> {
 interface Err<T> {
   readonly error: T;
   readonly trace?: readonly [T, ...T[]];
+}
+
+/** A successful empty result. */
+interface NilResult extends Nil {
+  readonly success: true;
 }
 
 /** A successful result carrying `data`. */
@@ -25,7 +35,9 @@ interface ErrResult<T = unknown> extends Err<T> {
 }
 
 /** Discriminated union representing either a success (`ValResult`) or a failure (`ErrResult`). */
-export type Result<V, E = unknown> = ValResult<V> | ErrResult<E>;
+export type Result<V, E = unknown> = (V extends undefined ? NilResult : ValResult<V>) | ErrResult<E>;
+
+const _r: Result<undefined> = { success: true };
 
 /** Constraint that restricts a mapped type to string keys only. */
 export type NotStringDict = {
@@ -52,7 +64,7 @@ export type CastSchema<Map extends CastMap> = {
 
 /** Sends fire-and-forget messages to topics defined in a {@link CastMap}. */
 export type CastSender<Map extends CastMap> = {
-  send<Topic extends keyof Map & string>(topic: Topic, message: Map[Topic]["message"]): Promise<Result<void>>;
+  send<Topic extends keyof Map & string>(topic: Topic, message: Map[Topic]["message"]): Promise<Result<undefined>>;
 };
 
 /** Subscribes to fire-and-forget messages from topics defined in a {@link CastMap}. */
