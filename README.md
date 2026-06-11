@@ -85,7 +85,7 @@ if (error) {
 }
 
 // Function tracing with probe
-const trace = probe(({ args }) => {
+const trace = probe((...args) => {
   console.log("Called with:", args);
   return (result) => {
     if ("error" in result) {
@@ -96,9 +96,35 @@ const trace = probe(({ args }) => {
   };
 });
 
-const logger = { name: "myLogger" };
-const tracedHello = trace(logger, (name: string) => `Hello, ${name}!`);
+const tracedHello = trace((name: string) => `Hello, ${name}!`);
 tracedHello("World"); // Logs arguments and result
+
+// Advanced: composing probes as logger and guard
+const logger = (method: string) =>
+  probe((...args: unknown[]) => {
+    console.log(`${method} entered`, ...args);
+    return (result) => {
+      if ("error" in result) {
+        console.log(`${method} threw`, result.error);
+      } else {
+        console.log(`${method} returned`, result.value);
+      }
+    };
+  });
+
+const threshold = (method: string, minimum: number) =>
+  probe((x: number) => {
+    if (x < minimum) {
+      throw new Error(`${method} cannot be less than ${minimum}`);
+    }
+  });
+
+const rate = (performance: number) => (performance > 7 ? "good" : "bad");
+
+// Compose: logger wraps threshold wraps rate
+const tracedRate = logger("rate")(threshold("rate", 0)(rate));
+tracedRate(8); // "rate entered 8" → "rate returned good"
+tracedRate(-1); // "rate entered -1" → "rate threw Error: rate cannot be less than 0"
 ```
 
 ### @thuum/piper
@@ -197,8 +223,8 @@ Abstract message transport layer providing a unified interface for message passi
 import { createTransport } from "@thuum/transport";
 
 const transport = createTransport({
+  type: "window-custom-event",
   namespace: "my-app",
-  target: window,
 });
 
 // Subscribe to messages
@@ -336,7 +362,7 @@ bun run build:cjs       # Build CJS only
 ### Technology Stack
 
 - **Package Manager**: Bun with workspaces
-- **Language**: TypeScript 5.8+
+- **Language**: TypeScript 6.0+
 - **Build**: TypeScript compiler (dual ESM/CJS output)
 - **Testing**: Bun test runner with built-in coverage
 - **Linting**: ESLint 9 with TypeScript support
@@ -431,7 +457,7 @@ Create `bunfig.toml` with test configuration:
 ```toml
 [test]
 preload = ["./test-preload.ts"]
-coverageThreshold = { lines = 0.9, functions = 0.9, statements = 0.9 }
+coverageThreshold = { lines = 0.8, functions = 0.8, statements = 0.8 }
 ```
 
 Add scripts to `package.json`:
@@ -439,6 +465,6 @@ Add scripts to `package.json`:
 ```json
 "scripts": {
   "test": "bun test packages",
-  "test:ci": "bun test packages --coverage --coverage-reporter=lcov"
+  "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage"
 }
 ```

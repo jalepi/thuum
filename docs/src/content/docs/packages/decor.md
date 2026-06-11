@@ -44,12 +44,12 @@ if ("error" in result) {
 
 ### `probe(probeFn)`
 
-Creates a decorator that observes function execution. The `probeFn` receives the call arguments and returns a callback that receives the result.
+Creates a decorator that observes function execution. The `probeFn` receives the function arguments directly and optionally returns a callback that receives the result.
 
 ```typescript
 import { probe } from "@thuum/decor";
 
-const trace = probe(({ args }) => {
+const trace = probe((...args) => {
   console.log("Called with:", args);
   return (result) => {
     if ("error" in result) {
@@ -60,10 +60,55 @@ const trace = probe(({ args }) => {
   };
 });
 
-const context = { name: "logger" };
-const tracedFn = trace(context, (x: number) => x * 2);
+const tracedFn = trace((x: number) => x * 2);
 tracedFn(5); // Logs: Called with: [5] → Returned: 10
 ```
+
+### Advanced: Composing Probes
+
+Probes can be used as **logger factories** and **precondition guards**, then composed together:
+
+```typescript
+import { probe } from "@thuum/decor";
+
+// A logger factory — creates a named probe that traces calls
+const logger = (method: string) =>
+  probe((...args: unknown[]) => {
+    console.log(`${method} entered`, ...args);
+    return (result) => {
+      if ("error" in result) {
+        console.log(`${method} threw`, result.error);
+      } else {
+        console.log(`${method} returned`, result.value);
+      }
+    };
+  });
+
+// A threshold guard — throws if input is below minimum
+const threshold = (method: string, minimum: number) =>
+  probe((x: number) => {
+    if (x < minimum) {
+      throw new Error(`${method} cannot be less than ${minimum}`);
+    }
+  });
+
+// A business function we want to keep lean
+const rate = (performance: number): "good" | "bad" =>
+  performance > 7 ? "good" : "bad";
+
+// Compose: logger (outer) wraps threshold (inner) wraps rate
+const tracedRate = logger("rate")(threshold("rate", 0)(rate));
+
+tracedRate(8);
+// "rate entered 8"
+// "rate returned good"
+
+tracedRate(-1);
+// "rate entered -1"
+// "rate threw Error: rate cannot be less than 0"
+```
+
+Because the logger is the outermost decorator, it observes errors thrown by the threshold guard — keeping the business function completely unaware of cross-cutting concerns.
 
 ## Async Variants
 
