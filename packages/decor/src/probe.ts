@@ -1,8 +1,6 @@
 import type { Any, Result } from "./types";
 
-type ProbeFn<Ctx, Args extends Any[], R> =
-  | (({ ctx, args }: { ctx: Ctx; args: Args }) => void)
-  | (({ ctx, args }: { ctx: Ctx; args: Args }) => (result: Result<R>) => void);
+type ProbeFn<Args extends Any[], R> = ((...args: Args) => void) | ((...args: Args) => (result: Result<R>) => void);
 
 /**
  * Creates a probe decorator
@@ -10,7 +8,7 @@ type ProbeFn<Ctx, Args extends Any[], R> =
  * @returns probe decorator
  *
  * @example
- * const trace = probe(({ ctx, args }) => {
+ * const trace = probe((...args) => {
  *   console.log("function arguments:", args);
  *   return (result) => {
  *     if ("error" in result) {
@@ -28,12 +26,12 @@ type ProbeFn<Ctx, Args extends Any[], R> =
  * // prints Hello, my friend
  * // prints function succeeded with return: "Hello, my friend"
  */
-export const probe = <const Ctx, const Args extends Any[] = Any[], const R = unknown>(probe: ProbeFn<Ctx, Args, R>) => {
-  return <const Args2 extends Args, const R2 extends R>(ctx: Ctx, fn: (...args: Args2) => R2) => {
+export const probe = <const Args extends Any[] = Any[], const R = unknown>(probe: ProbeFn<Args, R>) => {
+  return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => R2) => {
     return function (this: void, ...args: Args2): R2 {
-      const complete = probe({ ctx, args });
+      const complete = probe(...args);
       try {
-        const value = fn.apply(this, args);
+        const value = fn.call(this, ...args);
         complete?.({ value });
         return value;
       } catch (error) {

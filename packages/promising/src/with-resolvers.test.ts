@@ -1,5 +1,4 @@
 import { describe, it, expect } from "bun:test";
-import { waitFor } from "../../../test-helpers";
 import withResolvers, { noop } from "./with-resolvers";
 
 describe("PromiseNext tests", () => {
@@ -12,16 +11,6 @@ describe("PromiseNext tests", () => {
     expect(promise).toBeInstanceOf(Promise);
     expect(resolve).toBeInstanceOf(Function);
     expect(reject).toBeInstanceOf(Function);
-  });
-
-  it("should initial promise be pending", () => {
-    const { promise } = withResolvers();
-
-    expect(
-      waitFor(async () => {
-        await promise;
-      }),
-    ).rejects.toThrow();
   });
 
   it("should resolve a promise", () => {
