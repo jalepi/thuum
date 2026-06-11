@@ -98,6 +98,33 @@ const trace = probe((...args) => {
 
 const tracedHello = trace((name: string) => `Hello, ${name}!`);
 tracedHello("World"); // Logs arguments and result
+
+// Advanced: composing probes as logger and guard
+const logger = (method: string) =>
+  probe((...args: unknown[]) => {
+    console.log(`${method} entered`, ...args);
+    return (result) => {
+      if ("error" in result) {
+        console.log(`${method} threw`, result.error);
+      } else {
+        console.log(`${method} returned`, result.value);
+      }
+    };
+  });
+
+const threshold = (method: string, minimum: number) =>
+  probe((x: number) => {
+    if (x < minimum) {
+      throw new Error(`${method} cannot be less than ${minimum}`);
+    }
+  });
+
+const rate = (performance: number) => (performance > 7 ? "good" : "bad");
+
+// Compose: logger wraps threshold wraps rate
+const tracedRate = logger("rate")(threshold("rate", 0)(rate));
+tracedRate(8); // "rate entered 8" → "rate returned good"
+tracedRate(-1); // "rate entered -1" → "rate threw Error: rate cannot be less than 0"
 ```
 
 ### @thuum/piper
