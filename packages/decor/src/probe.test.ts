@@ -124,7 +124,7 @@ describe("probe decorator tests", () => {
     },
   ];
 
-  it.each(cases).only("should demo advanced scenarios", ({ performance, traces }) => {
+  it.each(cases)("should demo advanced scenarios", ({ performance, traces }) => {
     /*
     rate is a business function we would like to keep very lean.
     when exported and used, we would like to trace its usage.
