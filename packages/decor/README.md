@@ -55,14 +55,14 @@ if ("error" in result) {
 
 ### `probe(probeFn)`
 
-Creates a decorator that observes function execution. The `probeFn` receives the call arguments and returns a callback that receives the result.
+Creates a decorator that observes function execution. The `probeFn` receives the function arguments directly and optionally returns a callback that receives the result.
 
 #### Example
 
 ```typescript
 import { probe } from "@thuum/decor";
 
-const trace = probe(({ args }) => {
+const trace = probe((...args) => {
   console.log("Called with:", args);
   return (result) => {
     if ("error" in result) {
@@ -73,8 +73,7 @@ const trace = probe(({ args }) => {
   };
 });
 
-const context = { name: "logger" };
-const tracedFn = trace(context, (x: number) => x * 2);
+const tracedFn = trace((x: number) => x * 2);
 tracedFn(5); // Logs: Called with: [5] → Returned: 10
 ```
 

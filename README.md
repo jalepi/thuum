@@ -85,7 +85,7 @@ if (error) {
 }
 
 // Function tracing with probe
-const trace = probe(({ args }) => {
+const trace = probe((...args) => {
   console.log("Called with:", args);
   return (result) => {
     if ("error" in result) {
@@ -96,8 +96,7 @@ const trace = probe(({ args }) => {
   };
 });
 
-const logger = { name: "myLogger" };
-const tracedHello = trace(logger, (name: string) => `Hello, ${name}!`);
+const tracedHello = trace((name: string) => `Hello, ${name}!`);
 tracedHello("World"); // Logs arguments and result
 ```
 
@@ -197,8 +196,8 @@ Abstract message transport layer providing a unified interface for message passi
 import { createTransport } from "@thuum/transport";
 
 const transport = createTransport({
+  type: "window-custom-event",
   namespace: "my-app",
-  target: window,
 });
 
 // Subscribe to messages
@@ -336,7 +335,7 @@ bun run build:cjs       # Build CJS only
 ### Technology Stack
 
 - **Package Manager**: Bun with workspaces
-- **Language**: TypeScript 5.8+
+- **Language**: TypeScript 6.0+
 - **Build**: TypeScript compiler (dual ESM/CJS output)
 - **Testing**: Bun test runner with built-in coverage
 - **Linting**: ESLint 9 with TypeScript support
@@ -431,7 +430,7 @@ Create `bunfig.toml` with test configuration:
 ```toml
 [test]
 preload = ["./test-preload.ts"]
-coverageThreshold = { lines = 0.9, functions = 0.9, statements = 0.9 }
+coverageThreshold = { lines = 0.8, functions = 0.8, statements = 0.8 }
 ```
 
 Add scripts to `package.json`:
@@ -439,6 +438,6 @@ Add scripts to `package.json`:
 ```json
 "scripts": {
   "test": "bun test packages",
-  "test:ci": "bun test packages --coverage --coverage-reporter=lcov"
+  "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage"
 }
 ```
