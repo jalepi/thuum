@@ -347,11 +347,6 @@ double(5);
 // logs: Returned: 10
 ```
 
----
-const tracedFn = trace((x: number) => x * 2);
-tracedFn(5); // Logs: Called with: [5] → Returned: 10
-```
-
 #### Advanced: Composing Probes
 
 Probes can be used as **logger factories** and **precondition guards**, then composed together:
