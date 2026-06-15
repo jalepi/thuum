@@ -17,7 +17,7 @@ npm install @thuum/decor
 - **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
 - **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 
-Both `attempt` and `probe` have async variants for Promise-based functions.
+All three have async variants available at `@thuum/decor/async`.
 
 ## API
 
@@ -287,7 +287,7 @@ sqrt(16);
 
 ### `attempt(fn)`
 
-Decorates a function so it returns a `Result<T>` (`{ value }` or `{ error }`) instead of throwing.
+Decorates a function so it returns a `Result<T>` (`{ ok: true, value }` or `{ ok: false, error }`) instead of throwing.
 
 ```typescript
 import { attempt } from "@thuum/decor";
@@ -300,7 +300,7 @@ const divide = (a: number, b: number) => {
 const safeDivide = attempt(divide);
 
 const result = safeDivide(10, 2);
-if ("error" in result) {
+if (!result.ok) {
   console.error("Failed:", result.error);
 } else {
   console.log("Result:", result.value); // 5
@@ -319,7 +319,7 @@ import { probe } from "@thuum/decor";
 const trace = probe((...args: unknown[]) => {
   console.log("Called with:", args);
   return (result) => {
-    if ("error" in result) {
+    if (!result.ok) {
       console.error("Failed:", result.error);
     } else {
       console.log("Returned:", result.value);
@@ -345,7 +345,7 @@ const logger = (method: string) =>
   probe((...args: unknown[]) => {
     console.log(`${method} entered`, ...args);
     return (result) => {
-      if ("error" in result) {
+      if (!result.ok) {
         console.log(`${method} threw`, result.error);
       } else {
         console.log(`${method} returned`, result.value);
@@ -381,7 +381,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ## Async Variants
 
-Both `attempt` and `probe` have async versions that handle Promise-returning functions:
+`decorate`, `attempt`, and `probe` all have async versions that handle Promise-returning functions:
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -394,12 +394,44 @@ const safeFetch = attempt(async (url: string) => {
 const result = await safeFetch("/api/data");
 ```
 
+### Async `decorate`
+
+The async `decorate` works just like the sync version but wraps async functions and awaits the decorator:
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+const withRetry = (maxAttempts: number, delayMs: number) =>
+  decorate(async (fn, ...args: unknown[]) => {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, delayMs));
+        }
+      }
+    }
+    throw lastError;
+  });
+
+const fetchUser = withRetry(3, 1000)(async (id: number) => {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+});
+
+await fetchUser(1); // Retries up to 3 times on failure
+```
+
 ---
 
 ## Result Type
 
 ```typescript
-type Result<T> = { value: T } | { error: unknown };
+type Result<T> = { ok: true; value: T; error?: never } | { ok: false; value?: never; error: unknown };
 ```
 
-A discriminated union representing either a successful computation (`{ value: T }`) or a failed one (`{ error: unknown }`). Use the `"error" in result` check to narrow the type.
+A discriminated union representing either a successful computation (`{ ok: true, value: T }`) or a failed one (`{ ok: false, error: unknown }`). Use `result.ok` to narrow the type.

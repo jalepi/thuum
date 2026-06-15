@@ -297,7 +297,7 @@ sqrt(16);
 
 ### `attempt(fn)`
 
-Decorates a function so it returns a `Result<T>` (`{ value }` or `{ error }`) instead of throwing.
+Decorates a function so it returns a `Result<T>` (`{ ok: true, value }` or `{ ok: false, error }`) instead of throwing.
 
 #### Example
 
@@ -312,7 +312,7 @@ const divide = (a: number, b: number) => {
 const safeDivide = attempt(divide);
 
 const result = safeDivide(10, 2);
-if ("error" in result) {
+if (!result.ok) {
   console.error("Failed:", result.error);
 } else {
   console.log("Result:", result.value); // 5
@@ -333,7 +333,7 @@ import { probe } from "@thuum/decor";
 const trace = probe((...args: unknown[]) => {
   console.log("Called with:", args);
   return (result) => {
-    if ("error" in result) {
+    if (!result.ok) {
       console.error("Failed:", result.error);
     } else {
       console.log("Returned:", result.value);
@@ -359,7 +359,7 @@ const logger = (method: string) =>
   probe((...args: unknown[]) => {
     console.log(`${method} entered`, ...args);
     return (result) => {
-      if ("error" in result) {
+      if (!result.ok) {
         console.log(`${method} threw`, result.error);
       } else {
         console.log(`${method} returned`, result.value);
@@ -466,10 +466,10 @@ const fetchData = withTimeout(5000)(async (url: string) => {
 ### `Result<T>`
 
 ```typescript
-type Result<T> = { value: T } | { error: unknown };
+type Result<T> = { ok: true; value: T; error?: never } | { ok: false; value?: never; error: unknown };
 ```
 
-A discriminated union representing either a successful computation (`{ value: T }`) or a failed one (`{ error: unknown }`). Use the `"error" in result` check to narrow the type.
+A discriminated union representing either a successful computation (`{ ok: true, value: T }`) or a failed one (`{ ok: false, error: unknown }`). Use `result.ok` to narrow the type.
 
 ## License
 
