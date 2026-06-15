@@ -15,11 +15,11 @@ import type { Any, Result } from "./types";
  * };
  *
  * const attemptToDivide = attempt(divide);
- * // ? (a: number, b: number) => [error: undefined, value: number] | [error: unknown, value?: number]
+ * // ? (a: number, b: number) => { ok: true; value: number; error?: undefined } | { ok: false; value?: undefined; error: unknown }
  *
- * const [error, value] = attemptToDivide(a, b);
- * // ? [error: undefined, value: number] | [error: unknown, value?: number]
- * if (error) {
+ * const { ok, value, error } = attemptToDivide(a, b);
+ * // ? { ok: true, value: number; error?: undefined } | { ok: false; value?: undefined; error: unknown }
+ * if (!ok) {
  *   console.error(`Could not divide ${a} by ${b} because: `, error);
  * } else {
  *   console.info(`${a} divided by ${b} is ${value}`);
@@ -30,8 +30,8 @@ export const attempt = <const Args extends Any[], const R>(fn: (...args: Args) =
   function (this: void, ...args: Args): Result<R> {
     try {
       const value = fn.apply(this, args);
-      return { value };
+      return { ok: true, value };
     } catch (error) {
-      return { error };
+      return { ok: false, error };
     }
   };

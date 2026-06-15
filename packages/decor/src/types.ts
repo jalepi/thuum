@@ -3,4 +3,4 @@
 export type Any = any;
 
 /** A discriminated union representing either a successful `{ value: T }` or a failed `{ error: unknown }`. */
-export type Result<T> = { value: T } | { error: unknown };
+export type Result<T> = { ok: true; value: T; error?: never } | { ok: false; value?: never; error: unknown };

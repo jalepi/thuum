@@ -18,7 +18,7 @@ bun add @thuum/decor
 - **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
 - **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 
-Both `attempt` and `probe` have async variants available at `@thuum/decor/async`.
+All three have async variants available at `@thuum/decor/async`.
 
 ## Features
 
@@ -395,7 +395,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ### Async Variants
 
-Both `attempt` and `probe` have async versions that handle Promise-returning functions:
+`decorate`, `attempt`, and `probe` all have async versions that handle Promise-returning functions:
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -407,6 +407,58 @@ const fetchData = async (url: string) => {
 
 const safeFetch = attempt(fetchData);
 const result = await safeFetch("/api/data");
+```
+
+#### Async `decorate`
+
+The async `decorate` works just like the sync version but wraps async functions and awaits the decorator:
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+const withRetry = (maxAttempts: number, delayMs: number) =>
+  decorate(async (fn, ...args: unknown[]) => {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, delayMs));
+        }
+      }
+    }
+    throw lastError;
+  });
+
+const fetchUser = withRetry(3, 1000)(async (id: number) => {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+});
+
+await fetchUser(1); // Retries up to 3 times on failure
+```
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+const withTimeout = (ms: number) =>
+  decorate(async (fn, ...args: unknown[]) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ms);
+    try {
+      return await fn(...args);
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
+
+const fetchData = withTimeout(5000)(async (url: string) => {
+  const res = await fetch(url);
+  return res.json();
+});
 ```
 
 ---

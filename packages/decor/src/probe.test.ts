@@ -23,7 +23,7 @@ describe("probe decorator tests", () => {
 
     expect(div(4, 2)).toBe(2);
     expect(spies.args).toHaveBeenCalledWith([4, 2]);
-    expect(spies.ret).toHaveBeenCalledWith({ value: 2 });
+    expect(spies.ret).toHaveBeenCalledWith({ ok: true, value: 2 });
   });
 
   it("should probe function arguments and failure", () => {
@@ -39,7 +39,7 @@ describe("probe decorator tests", () => {
 
     expect(() => div(4, 0)).toThrow(divideByZeroError);
     expect(spies.args).toHaveBeenCalledWith([4, 0]);
-    expect(spies.ret).toHaveBeenCalledWith({ error: divideByZeroError });
+    expect(spies.ret).toHaveBeenCalledWith({ ok: false, error: divideByZeroError });
   });
 
   it("should probe without return", () => {
@@ -79,19 +79,19 @@ describe("probe decorator tests", () => {
     expect(res).toBe(b);
 
     expect(spies.args).toHaveBeenCalledWith(b);
-    expect(spies.ret).toHaveBeenCalledWith({ value: b });
+    expect(spies.ret).toHaveBeenCalledWith({ ok: true, value: b });
   });
 
   it("should probe", () => {
     expect(() => {
       probe((...args) => {
         console.log("calling with", args);
-        return (result) => {
-          if ("error" in result) {
-            console.log("throwing with", args, result.error);
+        return ({ ok, error, value }) => {
+          if (!ok) {
+            console.log("throwing with", args, error);
             return;
           }
-          console.log("returning with", args, result.value);
+          console.log("returning with", args, value);
         };
       });
     }).not.toThrow();
@@ -159,11 +159,11 @@ describe("probe decorator tests", () => {
     const logger = (method: string) =>
       probe((...args: unknown[]) => {
         trace(`logger of ${method} entered`, ...args);
-        return (result) => {
-          if ("error" in result) {
-            trace(`logger of ${method} threw error`, result.error);
+        return ({ ok, error, value }) => {
+          if (!ok) {
+            trace(`logger of ${method} threw error`, error);
           } else {
-            trace(`logger of ${method} returned value`, result.value);
+            trace(`logger of ${method} returned value`, value);
           }
         };
       });

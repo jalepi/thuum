@@ -10,11 +10,11 @@ type ProbeFn<Args extends Any[], R> = ((...args: Args) => void) | ((...args: Arg
  * @example
  * const trace = probe((...args) => {
  *   console.log("function arguments:", args);
- *   return (result) => {
- *     if ("error" in result) {
- *       console.log("function failed with error: ", result.error);
+ *   return ({ ok, error, value }) => {
+ *     if (!ok) {
+ *       console.log("function failed with error: ", error);
  *     } else {
- *       console.log("function succeeded with return: ", result.value);
+ *       console.log("function succeeded with return: ", value);
  *     }
  *   };
  * });
@@ -32,10 +32,10 @@ export const probe = <const Args extends Any[] = Any[], const R = unknown>(probe
       const complete = probe(...args);
       try {
         const value = fn.call(this, ...args);
-        complete?.({ value });
+        complete?.({ ok: true, value });
         return value;
       } catch (error) {
-        complete?.({ error });
+        complete?.({ ok: false, error });
         throw error;
       }
     };

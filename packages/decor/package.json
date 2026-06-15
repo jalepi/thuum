@@ -42,6 +42,16 @@
         "types": "./dist/cjs/index.d.ts",
         "default": "./dist/cjs/index.js"
       }
+    },
+    "./async": {
+      "import": {
+        "types": "./dist/esm/async/index.d.ts",
+        "default": "./dist/esm/async/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/async/index.d.ts",
+        "default": "./dist/cjs/async/index.js"
+      }
     }
   },
   "files": [

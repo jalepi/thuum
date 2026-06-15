@@ -11,7 +11,7 @@ describe("attempt decorator tests", () => {
 
     const result = decor();
 
-    assert(!("error" in result));
+    assert(result.ok);
     assert("value" in result);
     expect(result.value).toBe("ok");
   });
