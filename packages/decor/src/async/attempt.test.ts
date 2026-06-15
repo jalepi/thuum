@@ -8,6 +8,7 @@ describe("attempt async decorator tests", () => {
     const decor = attempt(fn);
 
     const result = await decor();
+    assert(result.ok);
     assert("value" in result);
     assert(!("error" in result));
     expect(result.value).toBe("ok");
@@ -19,6 +20,7 @@ describe("attempt async decorator tests", () => {
     const decor = attempt(fn);
 
     const result = await decor();
+    assert(!result.ok);
     assert(!("value" in result));
     assert("error" in result);
     expect(result.error).toBe(err);

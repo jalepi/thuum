@@ -25,7 +25,7 @@ describe("probe async decorator tests", () => {
 
     expect(fn(2)).resolves.toBe(3);
     expect(args).toHaveBeenCalledWith([2]);
-    expect(ret).toHaveBeenCalledWith({ value: 3 });
+    expect(ret).toHaveBeenCalledWith({ ok: true, value: 3 });
     expect(ret).not.toHaveBeenCalledWith(someError);
   });
 
@@ -37,7 +37,7 @@ describe("probe async decorator tests", () => {
     expect(fn(2)).rejects.toThrow(error);
     expect(args).toHaveBeenCalledWith([2]);
     expect(ret).not.toHaveBeenCalledWith(someValue);
-    expect(ret).toHaveBeenCalledWith({ error });
+    expect(ret).toHaveBeenCalledWith({ ok: false, error });
   });
 
   it("should probe without return", () => {
@@ -92,7 +92,7 @@ describe("probe async decorator tests", () => {
     expect(fn2(b)).resolves.toBe(b);
 
     expect(spyArgs).toHaveBeenCalledWith(b);
-    expect(spyResult).toHaveBeenCalledWith({ value: b });
+    expect(spyResult).toHaveBeenCalledWith({ ok: true, value: b });
     expect(spyResult).not.toHaveBeenCalledWith(someError);
   });
 });

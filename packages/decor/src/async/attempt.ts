@@ -15,11 +15,11 @@ import type { Any, Result } from "../types";
  *
  * const attemptToFetch = attempt(fetchData);
  *
- * const [error, data] = attemptToFetch("users/1/todos");
- * if (error) {
+ * const { ok, error, value } = attemptToFetch("users/1/todos");
+ * if (!ok) {
  *   console.error(`Could fetch data because: `, error);
  * } else {
- *   console.info(`Fetched data: `, data);
+ *   console.info(`Fetched data: `, value);
  * }
  * ```
  */
@@ -28,8 +28,8 @@ export const attempt =
   async (...args: Args): Promise<Result<R>> => {
     try {
       const value = await fn.apply(this, args);
-      return { value };
+      return { ok: true, value };
     } catch (error) {
-      return { error };
+      return { ok: false, error };
     }
   };

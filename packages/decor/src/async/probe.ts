@@ -12,8 +12,8 @@ type ProbeAsyncFn<Args extends Any[], R> =
  * @example
  * const trace = probe((...args) => {
  *   console.log("function arguments:", args);
- *   return ([error, value]) => {
- *     if (error) {
+ *   return ({ ok, error, value }) => {
+ *     if (!ok) {
  *       console.log("function failed with error: ", error);
  *     } else {
  *       console.log("function succeeded with return: ", value);
@@ -34,10 +34,10 @@ export const probe = <const Args extends Any[], const R>(probe: ProbeAsyncFn<Arg
       const complete = await probe(args);
       try {
         const value = await fn.apply(this, args);
-        await complete?.({ value });
+        await complete?.({ ok: true, value });
         return value;
       } catch (error) {
-        await complete?.({ error });
+        await complete?.({ ok: false, error });
         throw error;
       }
     };
