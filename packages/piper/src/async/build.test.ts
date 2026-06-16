@@ -1,19 +1,26 @@
 import { describe, it, expect, vi } from "bun:test";
-import asyncPipe from "./async-pipe";
+import asyncBuild from "./build";
 
-describe("async-pipe tests", () => {
-  it("should pipe value be value", () => {
-    const { value } = asyncPipe(Promise.resolve(1));
-    expect(value).resolves.toBe(1);
+describe("async-builder tests", () => {
+  it("should build returns builder", () => {
+    const { fn, pipe } = asyncBuild<unknown>();
+
+    expect(fn).toBeTypeOf("function");
+    expect(pipe).toBeTypeOf("function");
   });
 
-  it("should pipe number through a sequence of functions", () => {
+  it("should build returns identity", () => {
+    const { fn } = asyncBuild<number>();
+    expect(fn(1)).resolves.toBe(1);
+  });
+
+  it("should build chains sequence of functions into result", () => {
     const fn1 = (x: number) => Promise.resolve(x + 1);
     const fn2 = (x: number) => Promise.resolve(x * 2);
 
-    const { value } = asyncPipe(Promise.resolve(1)).pipe(fn1).pipe(fn2);
+    const { fn } = asyncBuild<number>().pipe(fn1).pipe(fn2);
 
-    expect(value).resolves.toBe(4);
+    expect(fn(1)).resolves.toBe(4);
   });
 
   it("should pipe mixed synchronous and asynchronous functions", () => {
@@ -22,7 +29,7 @@ describe("async-pipe tests", () => {
     const addAsync = (y: number) => (x: number) => Promise.resolve(x + y);
     const multAsync = (y: number) => (x: number) => Promise.resolve(x * y);
 
-    const { value } = asyncPipe(1)
+    const { fn } = asyncBuild<number>()
       .pipe(add(1))
       .pipe(mult(2))
       .pipe(addAsync(1))
@@ -32,16 +39,16 @@ describe("async-pipe tests", () => {
       .pipe(addAsync(1))
       .pipe(multAsync(2));
 
-    expect(value).resolves.toBe(46);
+    expect(fn(1)).resolves.toBe(46);
   });
 
   it("should pipe throws stop execution", () => {
     const spy = vi.fn<(x: number) => number>((x) => x);
-    const { value } = asyncPipe(1)
+    const { fn } = asyncBuild<number>()
       .pipe(() => Promise.reject(new Error("One")))
       .pipe(spy);
 
-    expect(value).rejects.toThrowError(new Error("One"));
+    expect(fn(1)).rejects.toThrowError(new Error("One"));
     expect(spy).not.toHaveBeenCalled();
   });
 });
