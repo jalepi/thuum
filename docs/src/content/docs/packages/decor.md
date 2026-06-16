@@ -20,6 +20,44 @@ npm install @thuum/decor
 
 All four have async variants available at `@thuum/decor/async`.
 
+## Choosing a Decorator
+
+The three core decorator factories — `decorate`, `middleware`, and `probe` — offer different levels of control over the wrapped function. Use this table to decide which one fits your use case.
+
+### Capability Comparison
+
+| Capability | `decorate` | `middleware` | `probe` |
+|---|:---:|:---:|:---:|
+| **Read arguments** | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` |
+| **Modify arguments** | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args |
+| **Read return value** | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) |
+| **Modify return value** | ✅ can return something else | ❌ no access | ❌ original value always returned |
+| **Prevent target execution** | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before |
+| **Call target multiple times** | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once |
+| **Code before target** | ✅ | ✅ | ✅ |
+| **Code after target** | ✅ | ✅ | ✅ via optional callback |
+| **Observe errors** | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` |
+| **Preserve `this` binding** | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied |
+| **Composable (stackable)** | ✅ | ✅ | ✅ |
+| **Type-safe wrapper signature** | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params |
+
+### Design Intent
+
+| | `decorate` | `middleware` | `probe` |
+|---|---|---|---|
+| **Mental model** | Full interception — you *are* the function | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function |
+| **Responsibility** | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you |
+| **Power level** | 🔴 Maximum | 🟡 Medium | 🟢 Minimum |
+| **Typical use cases** | Memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions |
+
+### When to Choose Which
+
+- **`probe`** — You just want to *observe* without interfering. The target always runs, you optionally inspect the outcome. Ideal for telemetry, logging, and lightweight precondition guards (that throw).
+- **`middleware`** — You need to control *whether* the target runs and/or wrap it with before/after logic, but you don't need to touch the arguments or return value. Familiar Express/Koa pattern.
+- **`decorate`** — You need full control: transform inputs, transform outputs, call the target conditionally or repeatedly, or replace its behavior entirely.
+
+---
+
 ## API
 
 ### `decorate(wrapper)`
