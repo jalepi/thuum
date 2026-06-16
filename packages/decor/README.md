@@ -14,12 +14,13 @@ bun add @thuum/decor
 
 `@thuum/decor` provides higher-order functions that wrap existing functions with cross-cutting concerns:
 
-- **`decorator(wrapper)`** — Core primitive for creating type-safe, reusable function decorators
+- **`decorate(fn, wrapper)`** — Decorates a single function with a wrapper, returning a new decorated version
+- **`decorator(wrapper)`** — Creates a reusable, type-safe function decorator applicable to many functions
 - **`middleware(mw)`** — Creates a decorator using a middleware pattern with a `next()` callback for controlling execution flow
 - **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
 - **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 
-All four have async variants available at `@thuum/decor/async`.
+All five have async variants available at `@thuum/decor/async`.
 
 ## Features
 
@@ -32,43 +33,188 @@ All four have async variants available at `@thuum/decor/async`.
 
 ## Choosing a Decorator
 
-The three core decorator factories — `decorator`, `middleware`, and `probe` — offer different levels of control over the wrapped function. Use this table to decide which one fits your use case.
+The package offers four functions with full or partial interception power — `decorate`, `decorator`, `middleware`, and `probe` — at different levels of reusability and control. Use this table to decide which one fits your use case.
 
 ### Capability Comparison
 
-| Capability | `decorator` | `middleware` | `probe` |
-|---|:---:|:---:|:---:|
-| **Read arguments** | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` |
-| **Modify arguments** | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args |
-| **Read return value** | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) |
-| **Modify return value** | ✅ can return something else | ❌ no access | ❌ original value always returned |
-| **Prevent target execution** | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before |
-| **Call target multiple times** | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once |
-| **Code before target** | ✅ | ✅ | ✅ |
-| **Code after target** | ✅ | ✅ | ✅ via optional callback |
-| **Observe errors** | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` |
-| **Preserve `this` binding** | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied |
-| **Composable (stackable)** | ✅ | ✅ | ✅ |
-| **Type-safe wrapper signature** | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params |
+| Capability | `decorate` | `decorator` | `middleware` | `probe` |
+|---|:---:|:---:|:---:|:---:|
+| **Read arguments** | ✅ receives `...args` | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` |
+| **Modify arguments** | ✅ can pass different values to `fn()` | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args |
+| **Read return value** | ✅ captures `fn()` result | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) |
+| **Modify return value** | ✅ can return something else | ✅ can return something else | ❌ no access | ❌ original value always returned |
+| **Prevent target execution** | ✅ simply don't call `fn()` | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before |
+| **Call target multiple times** | ✅ (e.g. retry) | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once |
+| **Code before target** | ✅ | ✅ | ✅ | ✅ |
+| **Code after target** | ✅ | ✅ | ✅ | ✅ via optional callback |
+| **Observe errors** | ✅ with try/catch around `fn()` | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` |
+| **Preserve `this` binding** | ✅ auto-bound | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied |
+| **Composable (stackable)** | ⚠️ via nesting `decorate()` calls | ✅ | ✅ | ✅ |
+| **Type-safe wrapper signature** | ✅ typed to target params | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params |
+| **Reusable across functions** | ❌ one-shot, bound to specific `fn` | ✅ returns a reusable decorator | ✅ returns a reusable decorator | ✅ returns a reusable decorator |
 
 ### Design Intent
 
-| | `decorator` | `middleware` | `probe` |
-|---|---|---|---|
-| **Mental model** | Full interception — you *are* the function | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function |
-| **Responsibility** | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you |
-| **Power level** | 🔴 Maximum | 🟡 Medium | 🟢 Minimum |
-| **Typical use cases** | Memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions |
+| | `decorate` | `decorator` | `middleware` | `probe` |
+|---|---|---|---|---|
+| **Mental model** | Ad-hoc wrapping — you decorate *one specific* function | Decorator factory — you create a *reusable* wrapper for many functions | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function |
+| **Responsibility** | You call `fn()`, you handle the result | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you |
+| **Power level** | 🔴 Maximum | 🔴 Maximum | 🟡 Medium | 🟢 Minimum |
+| **Scope** | Single function | Any compatible function | Any function | Any compatible function |
+| **Typical use cases** | One-off logging, argument clamping, ad-hoc memoization, quick inline wrapping | Reusable memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions |
 
 ### When to Choose Which
 
+- **`decorate`** — You want to wrap *one specific function* with full interception power. Ideal for ad-hoc, inline decoration where the wrapper logic is specific to that function and doesn't need to be reusable.
 - **`probe`** — You just want to *observe* without interfering. The target always runs, you optionally inspect the outcome. Ideal for telemetry, logging, and lightweight precondition guards (that throw).
 - **`middleware`** — You need to control *whether* the target runs and/or wrap it with before/after logic, but you don't need to touch the arguments or return value. Familiar Express/Koa pattern.
-- **`decorator`** — You need full control: transform inputs, transform outputs, call the target conditionally or repeatedly, or replace its behavior entirely.
+- **`decorator`** — You need full control *and* reusability: create a wrapper once and apply it to many functions. Transform inputs, transform outputs, call the target conditionally or repeatedly, or replace its behavior entirely.
 
 ---
 
 ## API
+
+### `decorate(fn, wrapper)`
+
+Decorates a single target function with a wrapper, returning a new function with the same signature. Unlike `decorator`, which creates a reusable decorator applicable to many functions, `decorate` is a one-shot decoration of a specific function.
+
+The wrapper receives:
+1. `fn` — the original function (with `this` already bound)
+2. `...args` — the arguments passed to the decorated function
+
+It must return the same type as the original function.
+
+#### Basic Example
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function greet(name: string) {
+  return `Hello, ${name}!`;
+}
+
+const loggedGreet = decorate(greet, (fn, name) => {
+  console.log(`greet called with "${name}"`);
+  const result = fn(name);
+  console.log(`greet returned "${result}"`);
+  return result;
+});
+
+loggedGreet("Alice");
+// logs: greet called with "Alice"
+// logs: greet returned "Hello, Alice!"
+```
+
+#### Argument Clamping
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function setVolume(level: number) {
+  return level;
+}
+
+const safeSetVolume = decorate(setVolume, (fn, level) => {
+  const clamped = Math.max(0, Math.min(100, level));
+  return fn(clamped);
+});
+
+safeSetVolume(150); // => 100
+safeSetVolume(-10); // => 0
+```
+
+#### Short-Circuiting
+
+Return early without calling the original function.
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function divide(a: number, b: number) {
+  return a / b;
+}
+
+const safeDivide = decorate(divide, (fn, a, b) => {
+  if (b === 0) return 0;
+  return fn(a, b);
+});
+
+safeDivide(10, 0); // => 0 (fn is never called)
+safeDivide(10, 2); // => 5
+```
+
+#### Retry
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function unreliableFetch(url: string): string {
+  if (Math.random() < 0.5) throw new Error("network error");
+  return `data from ${url}`;
+}
+
+const resilientFetch = decorate(unreliableFetch, (fn, url) => {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return fn(url);
+    } catch {
+      if (attempt === 2) throw new Error("all retries failed");
+    }
+  }
+  throw new Error("unreachable");
+});
+
+resilientFetch("https://example.com"); // retries up to 3 times
+```
+
+#### Memoization
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function expensiveComputation(n: number) {
+  console.log("computing...");
+  return n * n;
+}
+
+const memoized = decorate(expensiveComputation, (() => {
+  const cache = new Map<number, number>();
+  return (fn: (n: number) => number, n: number) => {
+    if (cache.has(n)) return cache.get(n)!;
+    const result = fn(n);
+    cache.set(n, result);
+    return result;
+  };
+})());
+
+memoized(5); // logs "computing...", returns 25
+memoized(5); // returns 25 (cached, no log)
+```
+
+#### `decorate` vs `decorator`
+
+Both offer full interception power. The difference is scope:
+
+```typescript
+import { decorate, decorator } from "@thuum/decor";
+
+// decorate — one-shot, specific to `add`
+const add = (a: number, b: number) => a + b;
+const loggedAdd = decorate(add, (fn, a, b) => {
+  console.log("adding", a, b);
+  return fn(a, b);
+});
+
+// decorator — reusable, apply to any function
+const withLogging = decorator((fn, ...args: unknown[]) => {
+  console.log("called with", args);
+  return fn(...args);
+});
+const loggedAdd2 = withLogging(add);
+const loggedMultiply = withLogging((a: number, b: number) => a * b);
+```
+
+---
 
 ### `decorator(wrapper)`
 
@@ -525,7 +671,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ### Async Variants
 
-`decorator`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
+`decorate`, `decorator`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -537,6 +683,46 @@ const fetchData = async (url: string) => {
 
 const safeFetch = attempt(fetchData);
 const result = await safeFetch("/api/data");
+```
+
+#### Async `decorate`
+
+The async `decorate` accepts both sync and async target functions — the result is always an async function returning `Promise<R>`:
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+async function fetchUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+const fetchUserWithLogging = decorate(fetchUser, async (fn, id) => {
+  console.log(`Fetching user ${id}…`);
+  const user = await fn(id);
+  console.log(`Fetched user ${id}:`, user);
+  return user;
+});
+
+await fetchUserWithLogging("42");
+// logs: Fetching user 42…
+// logs: Fetched user 42: { … }
+```
+
+Sync functions can also be decorated — the result becomes async:
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+function add(a: number, b: number) {
+  return a + b;
+}
+
+const asyncAdd = decorate(add, async (fn, a, b) => {
+  return fn(a, b);
+});
+
+await asyncAdd(1, 2); // Promise<3>
 ```
 
 #### Async `decorator`
