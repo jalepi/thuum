@@ -1,23 +1,23 @@
 import { describe, expect, it, vi } from "bun:test";
-import { decorate } from "./decorate";
+import { decorator } from "./decorator";
 
-describe("decorate async tests", () => {
-  it("should decorate not throw", () => {
+describe("decorator async tests", () => {
+  it("should decorator not throw", () => {
     const spy = vi.fn(() => Promise.resolve());
 
-    const bypass = decorate(async (fn, ...args: unknown[]) => await fn(...args));
+    const bypass = decorator(async (fn, ...args: unknown[]) => await fn(...args));
     const decorated = bypass(spy);
 
     expect(decorated()).resolves.toBeUndefined();
   });
 
-  it("should decorate receive args", async () => {
+  it("should decorator receive args", async () => {
     const spy = vi.fn();
     async function test(_a: number, _b: string, _c: boolean) {
       await Promise.resolve();
     }
 
-    const bypass = decorate(async (fn, ...args: unknown[]) => {
+    const bypass = decorator(async (fn, ...args: unknown[]) => {
       spy(...args);
       return await fn(...args);
     });
@@ -27,13 +27,13 @@ describe("decorate async tests", () => {
     expect(spy).toHaveBeenCalledWith(1, "foo", true);
   });
 
-  it("should decorate return", async () => {
+  it("should decorator return", async () => {
     const spy = vi.fn();
     async function test() {
       return Promise.resolve(1);
     }
 
-    const bypass = decorate(async (fn, ...args: unknown[]) => {
+    const bypass = decorator(async (fn, ...args: unknown[]) => {
       const r = await fn(...args);
       spy(r);
       return r;
@@ -44,56 +44,56 @@ describe("decorate async tests", () => {
     expect(spy).toHaveBeenCalledWith(1);
   });
 
-  it("should decorate binds this", async () => {
+  it("should decorator binds this", async () => {
     const spy = vi.fn();
     async function test(this: unknown) {
       spy(this);
       return Promise.resolve();
     }
 
-    const bypass = decorate(async (fn, ...args: unknown[]) => await fn(...args));
+    const bypass = decorator(async (fn, ...args: unknown[]) => await fn(...args));
     const obj = { test: bypass(test) };
 
     await obj.test();
     expect(spy).toHaveBeenCalledWith(obj);
   });
 
-  it("should decorate substitute args", async () => {
+  it("should decorator substitute args", async () => {
     const spy = vi.fn();
     async function test(a: number, b: string, c: boolean) {
       spy(a, b, c);
       return Promise.resolve();
     }
 
-    const modifyArgs = decorate(async (fn, a: number, b: string, c: boolean) => await fn(a + 1, b + "1", !c));
+    const modifyArgs = decorator(async (fn, a: number, b: string, c: boolean) => await fn(a + 1, b + "1", !c));
     const decorated = modifyArgs(test);
     await decorated(1, "foo", true);
 
     expect(spy).toHaveBeenCalledWith(1 + 1, "foo" + "1", !true);
   });
 
-  it("should decorate substitute return", async () => {
+  it("should decorator substitute return", async () => {
     const spy = vi.fn();
     async function test() {
       spy();
       return Promise.resolve(1);
     }
 
-    const modifyReturn = decorate(async (fn, ...args: unknown[]) => ((await fn(...args)) as number) + 1);
+    const modifyReturn = decorator(async (fn, ...args: unknown[]) => ((await fn(...args)) as number) + 1);
     const decorated = modifyReturn(test);
 
     expect(await decorated()).toBe(1 + 1);
     expect(spy).toHaveBeenCalled();
   });
 
-  it("should decorate short circuit", async () => {
+  it("should decorator short circuit", async () => {
     const spy = vi.fn();
     function test() {
       spy();
       return Promise.resolve(1);
     }
 
-    const shortCircuit = decorate(async (_fn, ..._args: unknown[]) => {
+    const shortCircuit = decorator(async (_fn, ..._args: unknown[]) => {
       await Promise.resolve();
       // noop
     });
@@ -103,13 +103,13 @@ describe("decorate async tests", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it("should decorate handle rejection", () => {
+  it("should decorator handle rejection", () => {
     const error = new Error("async failure");
     function test() {
       return Promise.reject(error);
     }
 
-    const bypass = decorate(async (fn, ...args: unknown[]) => await fn(...args));
+    const bypass = decorator(async (fn, ...args: unknown[]) => await fn(...args));
     const decorated = bypass(test);
 
     expect(decorated()).rejects.toThrow(error);

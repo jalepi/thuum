@@ -1,23 +1,23 @@
 import { describe, expect, it, vi } from "bun:test";
-import { decorate } from "./decorate";
+import { decorator } from "./decorator";
 
-describe("decorate tests", () => {
-  it("should decorate not throw", () => {
+describe("decorator tests", () => {
+  it("should decorator not throw", () => {
     const spy = vi.fn();
 
-    const bypass = decorate((fn, ...args: unknown[]) => fn(...args));
+    const bypass = decorator((fn, ...args: unknown[]) => fn(...args));
     const decorated = bypass(spy);
 
     expect(decorated).not.toThrow();
   });
 
-  it("should decorate receive args", () => {
+  it("should decorator receive args", () => {
     const spy = vi.fn();
     function test(_a: number, _b: string, _c: boolean) {
       //
     }
 
-    const bypass = decorate((fn, ...args: unknown[]) => {
+    const bypass = decorator((fn, ...args: unknown[]) => {
       spy(...args);
       fn(...args);
     });
@@ -27,13 +27,13 @@ describe("decorate tests", () => {
     expect(spy).toHaveBeenCalledWith(1, "foo", true);
   });
 
-  it("should decorate return", () => {
+  it("should decorator return", () => {
     const spy = vi.fn();
     function test() {
       return 1;
     }
 
-    const bypass = decorate((fn, ...args: unknown[]) => {
+    const bypass = decorator((fn, ...args: unknown[]) => {
       const r = fn(...args);
       spy(r);
       return r;
@@ -44,54 +44,54 @@ describe("decorate tests", () => {
     expect(spy).toHaveBeenCalledWith(1);
   });
 
-  it("should decorate binds this", () => {
+  it("should decorator binds this", () => {
     const spy = vi.fn();
     function test(this: unknown) {
       spy(this);
     }
 
-    const bypass = decorate((fn, ...args: unknown[]) => fn(...args));
+    const bypass = decorator((fn, ...args: unknown[]) => fn(...args));
     const obj = { test: bypass(test) };
 
     obj.test();
     expect(spy).toHaveBeenCalledWith(obj);
   });
 
-  it("should decorate substitute args", () => {
+  it("should decorator substitute args", () => {
     const spy = vi.fn();
     function test(a: number, b: string, c: boolean) {
       spy(a, b, c);
     }
 
-    const modifyArgs = decorate((fn, a: number, b: string, c: boolean) => fn(a + 1, b + "1", !c));
+    const modifyArgs = decorator((fn, a: number, b: string, c: boolean) => fn(a + 1, b + "1", !c));
     const decorated = modifyArgs(test);
     decorated(1, "foo", true);
 
     expect(spy).toHaveBeenCalledWith(1 + 1, "foo" + "1", !true);
   });
 
-  it("should decorate substitute return", () => {
+  it("should decorator substitute return", () => {
     const spy = vi.fn();
     function test() {
       spy();
       return 1;
     }
 
-    const modifyReturn = decorate((fn, ...args: unknown[]) => (fn(...args) as number) + 1);
+    const modifyReturn = decorator((fn, ...args: unknown[]) => (fn(...args) as number) + 1);
     const decorated = modifyReturn(test);
 
     expect(decorated()).toBe(1 + 1);
     expect(spy).toHaveBeenCalled();
   });
 
-  it("should decorate short circuit", () => {
+  it("should decorator short circuit", () => {
     const spy = vi.fn();
     function test() {
       spy();
       return 1;
     }
 
-    const shortCircuit = decorate((_fn, ..._args: unknown[]) => {
+    const shortCircuit = decorator((_fn, ..._args: unknown[]) => {
       // noop
     });
     const decorated = shortCircuit(test);
