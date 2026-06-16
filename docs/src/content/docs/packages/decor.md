@@ -13,18 +13,60 @@ npm install @thuum/decor
 
 `@thuum/decor` provides higher-order functions that wrap existing functions with cross-cutting concerns:
 
-- **`decorate(wrapper)`** — Core primitive for creating type-safe, reusable function decorators
+- **`decorate(fn, wrapper)`** — Decorates a single function with a wrapper, returning a new decorated version
+- **`decorator(wrapper)`** — Creates a reusable, type-safe function decorator applicable to many functions
 - **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
 - **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 - **`middleware(mw)`** — Creates a decorator using a middleware pattern with a `next()` callback for controlling execution flow
 
-All four have async variants available at `@thuum/decor/async`.
+All five have async variants available at `@thuum/decor/async`.
+
+## Choosing a Decorator
+
+The package offers four functions with full or partial interception power — `decorate`, `decorator`, `middleware`, and `probe` — at different levels of reusability and control. Use this table to decide which one fits your use case.
+
+### Capability Comparison
+
+| Capability | `decorate` | `decorator` | `middleware` | `probe` |
+|---|:---:|:---:|:---:|:---:|
+| **Read arguments** | ✅ receives `...args` | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` |
+| **Modify arguments** | ✅ can pass different values to `fn()` | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args |
+| **Read return value** | ✅ captures `fn()` result | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) |
+| **Modify return value** | ✅ can return something else | ✅ can return something else | ❌ no access | ❌ original value always returned |
+| **Prevent target execution** | ✅ simply don't call `fn()` | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before |
+| **Call target multiple times** | ✅ (e.g. retry) | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once |
+| **Code before target** | ✅ | ✅ | ✅ | ✅ |
+| **Code after target** | ✅ | ✅ | ✅ | ✅ via optional callback |
+| **Observe errors** | ✅ with try/catch around `fn()` | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` |
+| **Preserve `this` binding** | ✅ auto-bound | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied |
+| **Composable (stackable)** | ⚠️ via nesting `decorate()` calls | ✅ | ✅ | ✅ |
+| **Type-safe wrapper signature** | ✅ typed to target params | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params |
+| **Reusable across functions** | ❌ one-shot, bound to specific `fn` | ✅ returns a reusable decorator | ✅ returns a reusable decorator | ✅ returns a reusable decorator |
+
+### Design Intent
+
+| | `decorate` | `decorator` | `middleware` | `probe` |
+|---|---|---|---|---|
+| **Mental model** | Ad-hoc wrapping — you decorate *one specific* function | Decorator factory — you create a *reusable* wrapper for many functions | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function |
+| **Responsibility** | You call `fn()`, you handle the result | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you |
+| **Power level** | 🔴 Maximum | 🔴 Maximum | 🟡 Medium | 🟢 Minimum |
+| **Scope** | Single function | Any compatible function | Any function | Any compatible function |
+| **Typical use cases** | One-off logging, argument clamping, ad-hoc memoization, quick inline wrapping | Reusable memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions |
+
+### When to Choose Which
+
+- **`decorate`** — You want to wrap *one specific function* with full interception power. Ideal for ad-hoc, inline decoration where the wrapper logic is specific to that function and doesn't need to be reusable.
+- **`probe`** — You just want to *observe* without interfering. The target always runs, you optionally inspect the outcome. Ideal for telemetry, logging, and lightweight precondition guards (that throw).
+- **`middleware`** — You need to control *whether* the target runs and/or wrap it with before/after logic, but you don't need to touch the arguments or return value. Familiar Express/Koa pattern.
+- **`decorator`** — You need full control *and* reusability: create a wrapper once and apply it to many functions. Transform inputs, transform outputs, call the target conditionally or repeatedly, or replace its behavior entirely.
+
+---
 
 ## API
 
-### `decorate(wrapper)`
+### `decorate(fn, wrapper)`
 
-The core primitive for creating reusable, type-safe function decorators. It takes a wrapper function that intercepts calls to the decorated function, allowing you to add behavior before, after, or around the original invocation.
+Decorates a single target function with a wrapper, returning a new function with the same signature. Unlike `decorator`, which creates a reusable decorator applicable to many functions, `decorate` is a one-shot decoration of a specific function.
 
 The wrapper receives:
 1. `fn` — the original function (with `this` already bound)
@@ -37,7 +79,149 @@ It must return the same type as the original function.
 ```typescript
 import { decorate } from "@thuum/decor";
 
-const withLogging = decorate((fn, ...args: unknown[]) => {
+function greet(name: string) {
+  return `Hello, ${name}!`;
+}
+
+const loggedGreet = decorate(greet, (fn, name) => {
+  console.log(`greet called with "${name}"`);
+  const result = fn(name);
+  console.log(`greet returned "${result}"`);
+  return result;
+});
+
+loggedGreet("Alice");
+// logs: greet called with "Alice"
+// logs: greet returned "Hello, Alice!"
+```
+
+#### Argument Clamping
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function setVolume(level: number) {
+  return level;
+}
+
+const safeSetVolume = decorate(setVolume, (fn, level) => {
+  const clamped = Math.max(0, Math.min(100, level));
+  return fn(clamped);
+});
+
+safeSetVolume(150); // => 100
+safeSetVolume(-10); // => 0
+```
+
+#### Short-Circuiting
+
+Return early without calling the original function.
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function divide(a: number, b: number) {
+  return a / b;
+}
+
+const safeDivide = decorate(divide, (fn, a, b) => {
+  if (b === 0) return 0;
+  return fn(a, b);
+});
+
+safeDivide(10, 0); // => 0 (fn is never called)
+safeDivide(10, 2); // => 5
+```
+
+#### Retry
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function unreliableFetch(url: string): string {
+  if (Math.random() < 0.5) throw new Error("network error");
+  return `data from ${url}`;
+}
+
+const resilientFetch = decorate(unreliableFetch, (fn, url) => {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return fn(url);
+    } catch {
+      if (attempt === 2) throw new Error("all retries failed");
+    }
+  }
+  throw new Error("unreachable");
+});
+
+resilientFetch("https://example.com"); // retries up to 3 times
+```
+
+#### Memoization
+
+```typescript
+import { decorate } from "@thuum/decor";
+
+function expensiveComputation(n: number) {
+  console.log("computing...");
+  return n * n;
+}
+
+const memoized = decorate(expensiveComputation, (() => {
+  const cache = new Map<number, number>();
+  return (fn: (n: number) => number, n: number) => {
+    if (cache.has(n)) return cache.get(n)!;
+    const result = fn(n);
+    cache.set(n, result);
+    return result;
+  };
+})());
+
+memoized(5); // logs "computing...", returns 25
+memoized(5); // returns 25 (cached, no log)
+```
+
+#### `decorate` vs `decorator`
+
+Both offer full interception power. The difference is scope:
+
+```typescript
+import { decorate, decorator } from "@thuum/decor";
+
+// decorate — one-shot, specific to `add`
+const add = (a: number, b: number) => a + b;
+const loggedAdd = decorate(add, (fn, a, b) => {
+  console.log("adding", a, b);
+  return fn(a, b);
+});
+
+// decorator — reusable, apply to any function
+const withLogging = decorator((fn, ...args: unknown[]) => {
+  console.log("called with", args);
+  return fn(...args);
+});
+const loggedAdd2 = withLogging(add);
+const loggedMultiply = withLogging((a: number, b: number) => a * b);
+```
+
+---
+
+### `decorator(wrapper)`
+
+The core primitive for creating reusable, type-safe function decorators. It takes a wrapper function that intercepts calls to the decorated function, allowing you to add behavior before, after, or around the original invocation.
+
+The wrapper receives:
+1. `fn` — the original function (with `this` already bound)
+2. `...args` — the arguments passed to the decorated function
+
+It must return the same type as the original function.
+
+#### Basic Example
+
+```typescript
+import { decorator } from "@thuum/decor";
+
+const withLogging = decorator((fn, ...args: unknown[]) => {
   console.log("called with:", args);
   const result = fn(...args);
   console.log("returned:", result);
@@ -55,10 +239,10 @@ add(2, 3);
 Validate arguments before the function executes. Short-circuit with an error or default value when validation fails.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
 // Guard that prevents division by zero
-const safeDivision = decorate((fn, a: number, b: number) => {
+const safeDivision = decorator((fn, a: number, b: number) => {
   if (b === 0) {
     throw new RangeError("Cannot divide by zero");
   }
@@ -72,10 +256,10 @@ divide(10, 0); // throws RangeError: Cannot divide by zero
 ```
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
 // Guard that clamps arguments to a valid range
-const clampedInput = decorate((fn, value: number) => {
+const clampedInput = decorator((fn, value: number) => {
   const clamped = Math.max(0, Math.min(255, value));
   return fn(clamped);
 });
@@ -94,9 +278,9 @@ setBrightness(-50); // logs: Setting brightness to 0
 Decorate functions with structured logging for debugging and auditing.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
-const withLog = decorate((fn, ...args: unknown[]) => {
+const withLog = decorator((fn, ...args: unknown[]) => {
   const start = performance.now();
   try {
     const result = fn(...args);
@@ -124,10 +308,10 @@ fetchUser(-1); // [ERR] fetchUser(-1) threw after 0.01ms Error: Invalid ID
 Automatically retry a function on failure with configurable attempts and delay.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
 const withRetry = (maxAttempts: number, delayMs: number) =>
-  decorate((fn, ...args: unknown[]) => {
+  decorator((fn, ...args: unknown[]) => {
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -159,13 +343,13 @@ unstableOperation(); // Succeeds on 3rd attempt → { data: "success" }
 Eliminate stack overflow in recursive functions by converting tail calls into an iterative loop.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
 // Trampoline marker
 const BOUNCE = Symbol("bounce");
 type Thunk<T> = { [BOUNCE]: true; args: unknown[] } | T;
 
-const trampoline = decorate((fn, ...args: unknown[]) => {
+const trampoline = decorator((fn, ...args: unknown[]) => {
   let result: Thunk<unknown> = fn(...args);
   while (result && typeof result === "object" && BOUNCE in result) {
     result = fn(...result.args);
@@ -190,9 +374,9 @@ factorial(100_000); // computes without stack overflow
 Cache function results based on their arguments.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
-const memoize = decorate((fn, ...args: unknown[]) => {
+const memoize = decorator((fn, ...args: unknown[]) => {
   const cache: Map<string, unknown> = (fn as any).__cache ??= new Map();
   const key = JSON.stringify(args);
   if (cache.has(key)) {
@@ -216,10 +400,10 @@ fibonacci(50); // instant — without memoization this would take forever
 Conditionally allow or deny function execution based on runtime context.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
 const requireAuth = (getUser: () => { role: string } | null) =>
-  decorate((fn, ...args: unknown[]) => {
+  decorator((fn, ...args: unknown[]) => {
     const user = getUser();
     if (!user) {
       throw new Error("Unauthorized: no user session");
@@ -228,7 +412,7 @@ const requireAuth = (getUser: () => { role: string } | null) =>
   });
 
 const requireRole = (getUser: () => { role: string } | null, role: string) =>
-  decorate((fn, ...args: unknown[]) => {
+  decorator((fn, ...args: unknown[]) => {
     const user = getUser();
     if (user?.role !== role) {
       throw new Error(`Forbidden: requires role "${role}"`);
@@ -251,26 +435,26 @@ deleteRecord(42); // logs: Deleted record 42
 
 #### Composing Multiple Decorators
 
-Decorators created with `decorate` are regular functions — compose them naturally by stacking.
+Decorators created with `decorator` are regular functions — compose them naturally by stacking.
 
 ```typescript
-import { decorate } from "@thuum/decor";
+import { decorator } from "@thuum/decor";
 
-const withLogging = decorate((fn, ...args: unknown[]) => {
+const withLogging = decorator((fn, ...args: unknown[]) => {
   console.log("→", args);
   const result = fn(...args);
   console.log("←", result);
   return result;
 });
 
-const withTiming = decorate((fn, ...args: unknown[]) => {
+const withTiming = decorator((fn, ...args: unknown[]) => {
   const start = performance.now();
   const result = fn(...args);
   console.log(`⏱ ${(performance.now() - start).toFixed(2)}ms`);
   return result;
 });
 
-const withValidation = decorate((fn, n: number) => {
+const withValidation = decorator((fn, n: number) => {
   if (n < 0) throw new RangeError("Must be non-negative");
   return fn(n);
 });
@@ -351,7 +535,7 @@ greet("World");
 
 #### Composing Middlewares
 
-Middleware decorators compose naturally by stacking, just like `decorate`:
+Middleware decorators compose naturally by stacking, just like `decorator`:
 
 ```typescript
 import { middleware } from "@thuum/decor";
@@ -473,7 +657,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ## Async Variants
 
-`decorate`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
+`decorate`, `decorator`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -488,13 +672,53 @@ const result = await safeFetch("/api/data");
 
 ### Async `decorate`
 
-The async `decorate` works just like the sync version but wraps async functions and awaits the decorator:
+The async `decorate` accepts both sync and async target functions — the result is always an async function returning `Promise<R>`:
 
 ```typescript
 import { decorate } from "@thuum/decor/async";
 
+async function fetchUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+const fetchUserWithLogging = decorate(fetchUser, async (fn, id) => {
+  console.log(`Fetching user ${id}…`);
+  const user = await fn(id);
+  console.log(`Fetched user ${id}:`, user);
+  return user;
+});
+
+await fetchUserWithLogging("42");
+// logs: Fetching user 42…
+// logs: Fetched user 42: { … }
+```
+
+Sync functions can also be decorated — the result becomes async:
+
+```typescript
+import { decorate } from "@thuum/decor/async";
+
+function add(a: number, b: number) {
+  return a + b;
+}
+
+const asyncAdd = decorate(add, async (fn, a, b) => {
+  return fn(a, b);
+});
+
+await asyncAdd(1, 2); // Promise<3>
+```
+
+### Async `decorator`
+
+The async `decorator` works just like the sync version but wraps async functions and awaits the decorator:
+
+```typescript
+import { decorator } from "@thuum/decor/async";
+
 const withRetry = (maxAttempts: number, delayMs: number) =>
-  decorate(async (fn, ...args: unknown[]) => {
+  decorator(async (fn, ...args: unknown[]) => {
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
