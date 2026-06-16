@@ -15,10 +15,11 @@ bun add @thuum/decor
 `@thuum/decor` provides higher-order functions that wrap existing functions with cross-cutting concerns:
 
 - **`decorate(wrapper)`** — Core primitive for creating type-safe, reusable function decorators
+- **`middleware(mw)`** — Creates a decorator using a middleware pattern with a `next()` callback for controlling execution flow
 - **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
 - **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 
-All three have async variants available at `@thuum/decor/async`.
+All four have async variants available at `@thuum/decor/async`.
 
 ## Features
 
@@ -295,6 +296,97 @@ sqrt(16);
 
 ---
 
+### `middleware(mw)`
+
+Creates a decorator using a middleware pattern. The middleware function receives a `next` callback — calling it executes the original function, skipping it short-circuits execution.
+
+This pattern is familiar from Express/Koa-style middleware and is ideal for guards, timing, and conditional execution.
+
+#### Basic Example
+
+```typescript
+import { middleware } from "@thuum/decor";
+
+const withTiming = middleware((next) => {
+  const before = performance.now();
+  next();
+  const after = performance.now();
+  console.log(`Took ${(after - before).toFixed(2)}ms`);
+});
+
+const compute = withTiming((x: number) => x * x);
+compute(5); // logs: Took 0.01ms
+```
+
+#### Guard / Feature Access
+
+```typescript
+import { middleware } from "@thuum/decor";
+
+const featureAccess = (feature: string) =>
+  middleware((next) => {
+    if (!isFeatureEnabled(feature)) {
+      throw new Error(`Feature "${feature}" is not enabled`);
+    }
+    next();
+  });
+
+const protectedAction = featureAccess("beta-feature")((data: string) => {
+  console.log("Processing:", data);
+});
+
+protectedAction("hello"); // throws if feature is disabled
+```
+
+#### Before / After Hooks
+
+```typescript
+import { middleware } from "@thuum/decor";
+
+const withHooks = middleware((next) => {
+  console.log("before");
+  next();
+  console.log("after");
+});
+
+const greet = withHooks((name: string) => {
+  console.log(`Hello, ${name}!`);
+});
+
+greet("World");
+// logs: before
+// logs: Hello, World!
+// logs: after
+```
+
+#### Composing Middlewares
+
+Middleware decorators compose naturally by stacking, just like `decorate`:
+
+```typescript
+import { middleware } from "@thuum/decor";
+
+const withAuth = middleware((next) => {
+  if (!currentUser) throw new Error("Unauthorized");
+  next();
+});
+
+const withTiming = middleware((next) => {
+  const start = performance.now();
+  next();
+  console.log(`⏱ ${(performance.now() - start).toFixed(2)}ms`);
+});
+
+const action = withTiming(withAuth((id: number) => {
+  return `Deleted ${id}`;
+}));
+
+action(42);
+// Auth checked first, then timed
+```
+
+---
+
 ### `attempt(fn)`
 
 Decorates a function so it returns a `Result<T>` (`{ ok: true, value }` or `{ ok: false, error }`) instead of throwing.
@@ -395,7 +487,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ### Async Variants
 
-`decorate`, `attempt`, and `probe` all have async versions that handle Promise-returning functions:
+`decorate`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -459,6 +551,47 @@ const fetchData = withTimeout(5000)(async (url: string) => {
   const res = await fetch(url);
   return res.json();
 });
+```
+
+### Async `middleware`
+
+The async `middleware` works with `async` functions and `await`s the `next()` callback:
+
+```typescript
+import { middleware } from "@thuum/decor/async";
+
+const withTiming = middleware(async (next) => {
+  const before = performance.now();
+  await next();
+  const after = performance.now();
+  console.log(`Took ${(after - before).toFixed(2)}ms`);
+});
+
+const fetchData = withTiming(async (url: string) => {
+  const res = await fetch(url);
+  return res.json();
+});
+
+await fetchData("/api/data"); // logs timing after fetch completes
+```
+
+```typescript
+import { middleware } from "@thuum/decor/async";
+
+const featureAccess = (feature: string) =>
+  middleware(async (next) => {
+    const allowed = await checkFeatureFlag(feature);
+    if (!allowed) {
+      throw new Error(`Feature "${feature}" is not enabled`);
+    }
+    await next();
+  });
+
+const protectedAction = featureAccess("beta")(async (data: string) => {
+  await saveData(data);
+});
+
+await protectedAction("hello"); // checks flag asynchronously first
 ```
 
 ---
