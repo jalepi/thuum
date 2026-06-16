@@ -135,14 +135,15 @@ Functional programming utilities for pipe operations and function composition wi
 
 - **`pipe(value)`** - Chain synchronous transformations on a value
 - **`build<T>()`** - Build composed functions from synchronous transformations
-- **`asyncPipe(value)`** - Chain transformations that support both sync and async functions
-- **`asyncBuild<T>()`** - Build composed functions mixing sync and async operations
+- **`pipe(value)`** *(from `@thuum/piper/async`)* - Chain transformations that support both sync and async functions
+- **`build<T>()`** *(from `@thuum/piper/async`)* - Build composed functions mixing sync and async operations
 - **`MaybePromise<T>`** - Type that allows seamless mixing of sync and async functions
 
 #### Example
 
 ```typescript
-import { pipe, build, asyncPipe, asyncBuild } from "@thuum/piper";
+import { pipe, build } from "@thuum/piper";
+import { pipe as asyncPipe, build as asyncBuild } from "@thuum/piper/async";
 
 // Synchronous value pipe - transform a value through a chain
 const { value } = pipe(1)

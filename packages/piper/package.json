@@ -44,24 +44,14 @@
         "default": "./dist/cjs/index.js"
       }
     },
-    "./async-pipe": {
+    "./async": {
       "import": {
-        "types": "./dist/esm/async-pipe.d.ts",
-        "default": "./dist/esm/async-pipe.js"
+        "types": "./dist/esm/async/index.d.ts",
+        "default": "./dist/esm/async/index.js"
       },
       "require": {
-        "types": "./dist/cjs/async-pipe.d.ts",
-        "default": "./dist/cjs/async-pipe.js"
-      }
-    },
-    "./async-build": {
-      "import": {
-        "types": "./dist/esm/async-build.d.ts",
-        "default": "./dist/esm/async-build.js"
-      },
-      "require": {
-        "types": "./dist/cjs/async-build.d.ts",
-        "default": "./dist/cjs/async-build.js"
+        "types": "./dist/cjs/async/index.d.ts",
+        "default": "./dist/cjs/async/index.js"
       }
     }
   },

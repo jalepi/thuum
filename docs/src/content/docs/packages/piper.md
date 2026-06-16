@@ -15,8 +15,8 @@ npm install @thuum/piper
 
 - **`pipe(value)`** — Transform a value through a chain of synchronous functions
 - **`build<T>()`** — Compose synchronous functions into a reusable transformation pipeline
-- **`asyncPipe(value)`** — Transform values through chains that support both sync and async functions
-- **`asyncBuild<T>()`** — Compose functions (sync or async) into a reusable async pipeline
+- **`pipe(value)`** *(from `@thuum/piper/async`)* — Transform values through chains that support both sync and async functions
+- **`build<T>()`** *(from `@thuum/piper/async`)* — Compose functions (sync or async) into a reusable async pipeline
 
 ## Synchronous API
 
@@ -51,16 +51,16 @@ console.log(processNumber(1)); // "Result: 4"
 console.log(processNumber(5)); // "Result: 12"
 ```
 
-## Async API
+## Async API (`@thuum/piper/async`)
 
 The async variants support both synchronous and asynchronous functions in the same pipeline using `MaybePromise<T>`.
 
-### `asyncPipe(value)`
+### `pipe(value)`
 
 ```typescript
-import { asyncPipe } from "@thuum/piper";
+import { pipe } from "@thuum/piper/async";
 
-const { value } = asyncPipe(1)
+const { value } = pipe(1)
   .pipe((x) => x + 1) // sync
   .pipe(async (x) => x * 2) // async
   .pipe((x) => x.toString()); // sync
@@ -68,12 +68,12 @@ const { value } = asyncPipe(1)
 const result = await value; // "4"
 ```
 
-### `asyncBuild<T>()`
+### `build<T>()`
 
 ```typescript
-import { asyncBuild } from "@thuum/piper";
+import { build } from "@thuum/piper/async";
 
-const { fn: fetchUser } = asyncBuild<number>()
+const { fn: fetchUser } = build<number>()
   .pipe(async (id) => fetch(`/api/users/${id}`))
   .pipe(async (res) => res.json())
   .pipe((data) => data.name.toUpperCase());
