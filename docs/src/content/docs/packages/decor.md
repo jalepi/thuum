@@ -11,60 +11,79 @@ npm install @thuum/decor
 
 ## Overview
 
-`@thuum/decor` provides higher-order functions that wrap existing functions with cross-cutting concerns:
+`@thuum/decor` provides higher-order functions that wrap existing functions with cross-cutting concerns. They are organized in two categories:
 
-- **`decorate(fn, wrapper)`** — Decorates a single function with a wrapper, returning a new decorated version
-- **`decorator(wrapper)`** — Creates a reusable, type-safe function decorator applicable to many functions
-- **`attempt(fn)`** — Wraps a function in try-catch, returning a `Result<T>` instead of throwing
-- **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
+### Decorator Functions
+
+One-shot functions that decorate a specific target function, returning a new version:
+
+- **`decorate(fn, wrapper)`** — Decorates a single function with a wrapper, preserving its signature
+- **`transform(fn, transformer)`** — Transforms a function into a new one with a potentially different signature (args and/or return type)
+
+### Decorator Factories
+
+Produce reusable decorators that can be applied to many compatible functions:
+
+- **`attempt`** — A decorator that wraps a function in try-catch, returning a `Result<T>` instead of throwing
+- **`decorator(wrapper)`** — Creates a reusable, type-safe function decorator with full interception power
 - **`middleware(mw)`** — Creates a decorator using a middleware pattern with a `next()` callback for controlling execution flow
+- **`probe(probeFn)`** — Creates a decorator for tracing function execution (arguments and results)
 
-All five have async variants available at `@thuum/decor/async`.
+The async variants (available at `@thuum/decor/async`) include all factories above plus:
 
-## Choosing a Decorator
+- **`scheduler(next)`** — Creates a decorator that routes every invocation through a scheduling strategy
+- **`continuation(seed?)`** — Creates a sequential FIFO scheduler for serializing async execution
 
-The package offers four functions with full or partial interception power — `decorate`, `decorator`, `middleware`, and `probe` — at different levels of reusability and control. Use this table to decide which one fits your use case.
+## Choosing a Decorator Factory
+
+The package offers five decorator factories — `attempt`, `decorator`, `middleware`, `probe`, and `scheduler` — at different levels of interception power and reusability. Use this table to decide which one fits your use case.
+
+> **Note:** `decorate` and `transform` are not included here — they are one-shot decorator functions for inline use with a specific target, not reusable factories.
 
 ### Capability Comparison
 
-| Capability | `decorate` | `decorator` | `middleware` | `probe` |
-|---|:---:|:---:|:---:|:---:|
-| **Read arguments** | ✅ receives `...args` | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` |
-| **Modify arguments** | ✅ can pass different values to `fn()` | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args |
-| **Read return value** | ✅ captures `fn()` result | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) |
-| **Modify return value** | ✅ can return something else | ✅ can return something else | ❌ no access | ❌ original value always returned |
-| **Prevent target execution** | ✅ simply don't call `fn()` | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before |
-| **Call target multiple times** | ✅ (e.g. retry) | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once |
-| **Code before target** | ✅ | ✅ | ✅ | ✅ |
-| **Code after target** | ✅ | ✅ | ✅ | ✅ via optional callback |
-| **Observe errors** | ✅ with try/catch around `fn()` | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` |
-| **Preserve `this` binding** | ✅ auto-bound | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied |
-| **Composable (stackable)** | ⚠️ via nesting `decorate()` calls | ✅ | ✅ | ✅ |
-| **Type-safe wrapper signature** | ✅ typed to target params | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params |
-| **Reusable across functions** | ❌ one-shot, bound to specific `fn` | ✅ returns a reusable decorator | ✅ returns a reusable decorator | ✅ returns a reusable decorator |
+| Capability | `attempt` | `decorator` | `middleware` | `probe` | `scheduler` |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Read arguments** | ❌ no access | ✅ receives `...args` | ❌ only receives `next` | ✅ receives `...args` | ❌ no access |
+| **Modify arguments** | ❌ no access | ✅ can pass different values to `fn()` | ❌ no access | ❌ target always called with original args | ❌ no access |
+| **Read return value** | ✅ wrapped in `Result<T>` | ✅ captures `fn()` result | ❌ no access | ✅ via `Result<T>` callback (read-only) | ❌ no access |
+| **Modify return value** | ⚠️ always returns `Result<T>` | ✅ can return something else | ❌ no access | ❌ original value always returned | ❌ no access |
+| **Prevent target execution** | ❌ always executes | ✅ simply don't call `fn()` | ✅ simply don't call `next()` | ⚠️ only by throwing before | ❌ always executes |
+| **Call target multiple times** | ❌ always called exactly once | ✅ (e.g. retry) | ✅ can call `next()` multiple times | ❌ always called exactly once | ❌ always called exactly once |
+| **Code before target** | ❌ | ✅ | ✅ | ✅ | ❌ |
+| **Code after target** | ❌ | ✅ | ✅ | ✅ via optional callback | ❌ |
+| **Observe errors** | ✅ captured in `Result` | ✅ with try/catch around `fn()` | ⚠️ indirectly (next throws) | ✅ via `Result { ok: false, error }` | ❌ |
+| **Preserve `this` binding** | ✅ auto-applied | ✅ auto-bound | ✅ auto-applied | ✅ auto-applied | ✅ auto-applied |
+| **Composable (stackable)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Type-safe wrapper signature** | ✅ preserves target signature | ✅ typed to target params | ✅ generic over any target | ✅ typed to probe params | ✅ generic over any target |
 
 ### Design Intent
 
-| | `decorate` | `decorator` | `middleware` | `probe` |
-|---|---|---|---|---|
-| **Mental model** | Ad-hoc wrapping — you decorate *one specific* function | Decorator factory — you create a *reusable* wrapper for many functions | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function |
-| **Responsibility** | You call `fn()`, you handle the result | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you |
-| **Power level** | 🔴 Maximum | 🔴 Maximum | 🟡 Medium | 🟢 Minimum |
-| **Scope** | Single function | Any compatible function | Any function | Any compatible function |
-| **Typical use cases** | One-off logging, argument clamping, ad-hoc memoization, quick inline wrapping | Reusable memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions |
+| | `attempt` | `decorator` | `middleware` | `probe` | `scheduler` |
+|---|---|---|---|---|---|
+| **Mental model** | Safety net — converts throws into values | Decorator factory — you create a *reusable* wrapper for many functions | Flow control gate — you decide *whether* to proceed | Passive observer — you *watch* the function | Execution controller — you decide *when* to proceed |
+| **Responsibility** | The framework catches errors for you | You call `fn()`, you handle the result | You call `next()` to proceed | The framework calls the target for you | The scheduler decides when to call the target |
+| **Power level** | 🟢 Minimum | 🔴 Maximum | 🟡 Medium | 🟢 Minimum | 🟢 Minimum |
+| **Scope** | Any function | Any compatible function | Any function | Any compatible function | Any function (async only) |
+| **Typical use cases** | Safe error handling, Result-based APIs | Reusable memoization, retry, argument validation/transformation, trampolines, access control | Feature flags, timing, before/after hooks, guards, conditional execution | Logging, tracing, metrics, auditing, assertions | Sequential execution, rate limiting, debouncing, throttling, concurrency control |
 
 ### When to Choose Which
 
-- **`decorate`** — You want to wrap *one specific function* with full interception power. Ideal for ad-hoc, inline decoration where the wrapper logic is specific to that function and doesn't need to be reusable.
-- **`probe`** — You just want to *observe* without interfering. The target always runs, you optionally inspect the outcome. Ideal for telemetry, logging, and lightweight precondition guards (that throw).
-- **`middleware`** — You need to control *whether* the target runs and/or wrap it with before/after logic, but you don't need to touch the arguments or return value. Familiar Express/Koa pattern.
+- **`attempt`** — You want to convert a throwing function into one that returns `Result<T>`. No custom logic needed — just safe error boundaries.
 - **`decorator`** — You need full control *and* reusability: create a wrapper once and apply it to many functions. Transform inputs, transform outputs, call the target conditionally or repeatedly, or replace its behavior entirely.
+- **`middleware`** — You need to control *whether* the target runs and/or wrap it with before/after logic, but you don't need to touch the arguments or return value. Familiar Express/Koa pattern.
+- **`probe`** — You just want to *observe* without interfering. The target always runs, you optionally inspect the outcome. Ideal for telemetry, logging, and lightweight precondition guards (that throw).
+- **`scheduler`** — You need to control *when* a function executes — serializing concurrent calls, throttling, debouncing, or enforcing ordering guarantees. The target always runs eventually, but execution is deferred to the scheduling strategy. Async-only.
+
+> For one-shot, inline decoration of a specific function, use `decorate(fn, wrapper)` or `transform(fn, transformer)` directly instead of a factory.
 
 ---
 
 ## API
 
-### `decorate(fn, wrapper)`
+### Decorator Functions
+
+#### `decorate(fn, wrapper)`
 
 Decorates a single target function with a wrapper, returning a new function with the same signature. Unlike `decorator`, which creates a reusable decorator applicable to many functions, `decorate` is a one-shot decoration of a specific function.
 
@@ -74,7 +93,7 @@ The wrapper receives:
 
 It must return the same type as the original function.
 
-#### Basic Example
+##### Basic Example
 
 ```typescript
 import { decorate } from "@thuum/decor";
@@ -95,7 +114,7 @@ loggedGreet("Alice");
 // logs: greet returned "Hello, Alice!"
 ```
 
-#### Argument Clamping
+##### Argument Clamping
 
 ```typescript
 import { decorate } from "@thuum/decor";
@@ -113,7 +132,7 @@ safeSetVolume(150); // => 100
 safeSetVolume(-10); // => 0
 ```
 
-#### Short-Circuiting
+##### Short-Circuiting
 
 Return early without calling the original function.
 
@@ -133,7 +152,7 @@ safeDivide(10, 0); // => 0 (fn is never called)
 safeDivide(10, 2); // => 5
 ```
 
-#### Retry
+##### Retry
 
 ```typescript
 import { decorate } from "@thuum/decor";
@@ -157,7 +176,7 @@ const resilientFetch = decorate(unreliableFetch, (fn, url) => {
 resilientFetch("https://example.com"); // retries up to 3 times
 ```
 
-#### Memoization
+##### Memoization
 
 ```typescript
 import { decorate } from "@thuum/decor";
@@ -181,32 +200,118 @@ memoized(5); // logs "computing...", returns 25
 memoized(5); // returns 25 (cached, no log)
 ```
 
-#### `decorate` vs `decorator`
+---
 
-Both offer full interception power. The difference is scope:
+#### `transform(fn, transformer)`
+
+Transforms a target function into a new function with a potentially different signature (arguments and/or return type). Unlike `decorate`, which preserves the original function's signature, `transform` allows you to change the argument types, return type, or both.
+
+The transformer receives:
+1. `fn` — the original function (with `this` already bound)
+2. `...args` — the new arguments (may differ from the original signature)
+
+It may return a different type than the original function.
+
+##### Intercept and Observe
 
 ```typescript
-import { decorate, decorator } from "@thuum/decor";
+import { transform } from "@thuum/decor";
 
-// decorate — one-shot, specific to `add`
+const increment = (n: number) => n + 1;
+
+const traced = transform(increment, (fn, ...args) => {
+  const result = fn(...args);
+  console.log(`increment(${args}) => ${result}`);
+  return result;
+});
+
+traced(1); // logs: increment(1) => 2, returns 2
+```
+
+##### Change Argument Signature
+
+Accept multiple values instead of one:
+
+```typescript
+import { transform } from "@thuum/decor";
+
+const reverse = (s: string) => s.split("").reverse().join("");
+
+const reverseAll = transform(reverse, (fn, ...values: string[]) => {
+  return values.map((s) => fn(s)).join(" ");
+});
+
+reverseAll("hello", "world"); // => "olleh dlrow"
+```
+
+##### Change Return Type — Wrap in Result
+
+```typescript
+import { transform } from "@thuum/decor";
+
+const parse = (input: string) => {
+  const n = Number(input);
+  if (Number.isNaN(n)) throw new Error(`Invalid number: ${input}`);
+  return n;
+};
+
+const safeParse = transform(
+  parse,
+  (fn, ...args): Result<number> => {
+    try {
+      return { ok: true, value: fn(...args) };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  },
+);
+
+safeParse("42");   // => { ok: true, value: 42 }
+safeParse("nope"); // => { ok: false, error: Error(...) }
+```
+
+##### Convert Sync to Async
+
+```typescript
+import { transform } from "@thuum/decor";
+
 const add = (a: number, b: number) => a + b;
-const loggedAdd = decorate(add, (fn, a, b) => {
-  console.log("adding", a, b);
-  return fn(a, b);
+
+const asyncAdd = transform(add, async (fn, a, b) => {
+  return await Promise.resolve(fn(a, b));
 });
 
-// decorator — reusable, apply to any function
-const withLogging = decorator((fn, ...args: unknown[]) => {
-  console.log("called with", args);
-  return fn(...args);
+await asyncAdd(2, 3); // => 5 (as a Promise)
+```
+
+##### Retry Logic
+
+```typescript
+import { transform } from "@thuum/decor";
+
+const fetchData = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+};
+
+const resilientFetch = transform(fetchData, async (fn, ...args) => {
+  try {
+    return await fn(...args);
+  } catch {
+    await new Promise((r) => setTimeout(r, 100));
+    return await fn(...args);
+  }
 });
-const loggedAdd2 = withLogging(add);
-const loggedMultiply = withLogging((a: number, b: number) => a * b);
+
+await resilientFetch("/api/data"); // retries once on failure
 ```
 
 ---
 
-### `decorator(wrapper)`
+### Decorator Factories
+
+#### `decorator(wrapper)`
 
 The core primitive for creating reusable, type-safe function decorators. It takes a wrapper function that intercepts calls to the decorated function, allowing you to add behavior before, after, or around the original invocation.
 
@@ -216,7 +321,7 @@ The wrapper receives:
 
 It must return the same type as the original function.
 
-#### Basic Example
+##### Basic Example
 
 ```typescript
 import { decorator } from "@thuum/decor";
@@ -234,7 +339,7 @@ add(2, 3);
 // logs: returned: 5
 ```
 
-#### Function Guards
+##### Function Guards
 
 Validate arguments before the function executes. Short-circuit with an error or default value when validation fails.
 
@@ -273,7 +378,7 @@ setBrightness(300); // logs: Setting brightness to 255
 setBrightness(-50); // logs: Setting brightness to 0
 ```
 
-#### Logging
+##### Logging
 
 Decorate functions with structured logging for debugging and auditing.
 
@@ -303,7 +408,7 @@ fetchUser(1);  // [OK] fetchUser(1) → [object Object] (0.02ms)
 fetchUser(-1); // [ERR] fetchUser(-1) threw after 0.01ms Error: Invalid ID
 ```
 
-#### Retrying
+##### Retrying
 
 Automatically retry a function on failure with configurable attempts and delay.
 
@@ -338,7 +443,7 @@ const unstableOperation = withRetry(3, 100)(function fetchData() {
 unstableOperation(); // Succeeds on 3rd attempt → { data: "success" }
 ```
 
-#### Tail Call Optimization (Trampoline)
+##### Tail Call Optimization (Trampoline)
 
 Eliminate stack overflow in recursive functions by converting tail calls into an iterative loop.
 
@@ -369,7 +474,7 @@ const factorial = trampoline(function factorial(n: number, acc: number = 1): num
 factorial(100_000); // computes without stack overflow
 ```
 
-#### Memoization
+##### Memoization
 
 Cache function results based on their arguments.
 
@@ -395,7 +500,7 @@ const fibonacci = memoize(function fib(n: number): number {
 fibonacci(50); // instant — without memoization this would take forever
 ```
 
-#### Access Control
+##### Access Control
 
 Conditionally allow or deny function execution based on runtime context.
 
@@ -433,7 +538,7 @@ currentUser = { role: "admin" };
 deleteRecord(42); // logs: Deleted record 42
 ```
 
-#### Composing Multiple Decorators
+##### Composing Multiple Decorators
 
 Decorators created with `decorator` are regular functions — compose them naturally by stacking.
 
@@ -470,13 +575,13 @@ sqrt(16);
 
 ---
 
-### `middleware(mw)`
+#### `middleware(mw)`
 
 Creates a decorator using a middleware pattern. The middleware function receives a `next` callback — calling it executes the original function, skipping it short-circuits execution.
 
 This pattern is familiar from Express/Koa-style middleware and is ideal for guards, timing, and conditional execution.
 
-#### Basic Example
+##### Basic Example
 
 ```typescript
 import { middleware } from "@thuum/decor";
@@ -492,7 +597,7 @@ const compute = withTiming((x: number) => x * x);
 compute(5); // logs: Took 0.01ms
 ```
 
-#### Guard / Feature Access
+##### Guard / Feature Access
 
 ```typescript
 import { middleware } from "@thuum/decor";
@@ -512,7 +617,7 @@ const protectedAction = featureAccess("beta-feature")((data: string) => {
 protectedAction("hello"); // throws if feature is disabled
 ```
 
-#### Before / After Hooks
+##### Before / After Hooks
 
 ```typescript
 import { middleware } from "@thuum/decor";
@@ -533,7 +638,7 @@ greet("World");
 // logs: after
 ```
 
-#### Composing Middlewares
+##### Composing Middlewares
 
 Middleware decorators compose naturally by stacking, just like `decorator`:
 
@@ -561,7 +666,7 @@ action(42);
 
 ---
 
-### `attempt(fn)`
+#### `attempt(fn)`
 
 Decorates a function so it returns a `Result<T>` (`{ ok: true, value }` or `{ ok: false, error }`) instead of throwing.
 
@@ -585,7 +690,7 @@ if (!result.ok) {
 
 ---
 
-### `probe(probeFn)`
+#### `probe(probeFn)`
 
 Creates a decorator that observes function execution. The `probeFn` receives the call arguments and optionally returns a callback that receives the result.
 
@@ -609,7 +714,7 @@ double(5);
 // logs: Returned: 10
 ```
 
-### Advanced: Composing Probes
+#### Advanced: Composing Probes
 
 Probes can be used as **logger factories** and **precondition guards**, then composed together:
 
@@ -657,7 +762,7 @@ Because the logger is the outermost decorator, it observes errors thrown by the 
 
 ## Async Variants
 
-`decorate`, `decorator`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions:
+`decorator`, `attempt`, `probe`, and `middleware` all have async versions that handle Promise-returning functions. Additionally, the async module provides `scheduler` and `continuation` for execution scheduling.
 
 ```typescript
 import { attempt } from "@thuum/decor/async";
@@ -670,49 +775,9 @@ const safeFetch = attempt(async (url: string) => {
 const result = await safeFetch("/api/data");
 ```
 
-### Async `decorate`
-
-The async `decorate` accepts both sync and async target functions — the result is always an async function returning `Promise<R>`:
-
-```typescript
-import { decorate } from "@thuum/decor/async";
-
-async function fetchUser(id: string) {
-  const res = await fetch(`/api/users/${id}`);
-  return res.json();
-}
-
-const fetchUserWithLogging = decorate(fetchUser, async (fn, id) => {
-  console.log(`Fetching user ${id}…`);
-  const user = await fn(id);
-  console.log(`Fetched user ${id}:`, user);
-  return user;
-});
-
-await fetchUserWithLogging("42");
-// logs: Fetching user 42…
-// logs: Fetched user 42: { … }
-```
-
-Sync functions can also be decorated — the result becomes async:
-
-```typescript
-import { decorate } from "@thuum/decor/async";
-
-function add(a: number, b: number) {
-  return a + b;
-}
-
-const asyncAdd = decorate(add, async (fn, a, b) => {
-  return fn(a, b);
-});
-
-await asyncAdd(1, 2); // Promise<3>
-```
-
 ### Async `decorator`
 
-The async `decorator` works just like the sync version but wraps async functions and awaits the decorator:
+The async `decorator` works like the sync version but accepts both sync and async target functions — the result is always an async function returning `Promise<R>`:
 
 ```typescript
 import { decorator } from "@thuum/decor/async";
@@ -740,6 +805,26 @@ const fetchUser = withRetry(3, 1000)(async (id: number) => {
 });
 
 await fetchUser(1); // Retries up to 3 times on failure
+```
+
+Sync functions can also be decorated — the result becomes async:
+
+```typescript
+import { decorator } from "@thuum/decor/async";
+
+const withLogging = decorator(async (fn, ...args: unknown[]) => {
+  console.log("calling with", args);
+  const result = await fn(...args);
+  console.log("returned", result);
+  return result;
+});
+
+function add(a: number, b: number) {
+  return a + b;
+}
+
+const asyncAdd = withLogging(add);
+await asyncAdd(1, 2); // Promise<3>
 ```
 
 ---
@@ -784,6 +869,242 @@ const protectedAction = featureAccess("beta")(async (data: string) => {
 
 await protectedAction("hello"); // checks flag asynchronously first
 ```
+
+---
+
+### Async `probe`
+
+The async `probe` receives arguments **as a tuple** (not spread), allowing the probe to mutate the arguments array before the target function sees them. It always returns a `Promise`.
+
+```typescript
+import { probe } from "@thuum/decor/async";
+
+const trace = probe(async (args) => {
+  console.log("called with:", args);
+  return async ({ ok, error, value }) => {
+    if (ok) {
+      console.log("returned:", value);
+    } else {
+      console.log("threw:", error);
+    }
+  };
+});
+
+const add = trace(async (a: number, b: number) => a + b);
+await add(2, 3);
+// logs: called with: [2, 3]
+// logs: returned: 5
+```
+
+#### Argument Mutation
+
+Because the probe receives args as a mutable tuple, it can modify them before the target runs:
+
+```typescript
+import { probe } from "@thuum/decor/async";
+
+const negate = probe(async (args: [a: number, b: number]) => {
+  args[0] = -args[0];
+  args[1] = -args[1];
+});
+
+const add = negate(async (a: number, b: number) => a + b);
+await add(1, 2); // => -3 (args were negated before add ran)
+```
+
+#### Distributed Tracing
+
+```typescript
+import { probe } from "@thuum/decor/async";
+
+const traced = (name: string) =>
+  probe(async (args) => {
+    const span = tracer.startSpan(name, { attributes: { args } });
+    return async ({ ok, error }) => {
+      if (!ok) span.recordException(error as Error);
+      span.end();
+    };
+  });
+
+const fetchOrder = traced("fetchOrder")(async (id: string) => {
+  return await orderService.get(id);
+});
+
+await fetchOrder("order-123"); // span created and ended automatically
+```
+
+---
+
+### `scheduler(next)` and `continuation(seed?)`
+
+The `scheduler` creates a decorator that routes every invocation through a given scheduling strategy. Combined with `continuation`, this serializes concurrent calls into sequential execution.
+
+#### `Scheduler` Type
+
+A `Scheduler` is a function that accepts a zero-argument callable and returns a `Promise` that resolves when the scheduler decides to execute it:
+
+```typescript
+type Scheduler = <T>(callable: () => MaybePromise<T>) => Promise<T>;
+```
+
+#### `continuation(seed?)`
+
+Creates a continuation-based scheduler that executes callables sequentially in FIFO order. Each callable waits for the previous one to settle before starting:
+
+```typescript
+import { continuation } from "@thuum/decor/async";
+
+const next = continuation();
+
+const results: number[] = [];
+
+await Promise.all([
+  next(() => { results.push(1); return 1; }),
+  next(() => { results.push(2); return 2; }),
+  next(() => { results.push(3); return 3; }),
+]);
+
+// results => [1, 2, 3] — always in order, regardless of timing
+```
+
+Failures are isolated — one rejection doesn't break the chain:
+
+```typescript
+import { continuation } from "@thuum/decor/async";
+
+const next = continuation();
+
+const p1 = next(() => "first");
+const p2 = next(() => { throw new Error("oops"); });
+const p3 = next(() => "third");
+
+await p1;                    // => "first"
+await p2.catch((e) => e);    // => Error("oops")
+await p3;                    // => "third" — still runs
+```
+
+You can seed with a precondition to delay the entire chain:
+
+```typescript
+import { continuation } from "@thuum/decor/async";
+
+const ready = fetch("/api/health").then(() => undefined);
+const next = continuation(ready);
+
+// These won't execute until the health check resolves
+next(() => fetch("/api/data"));
+next(() => fetch("/api/more-data"));
+```
+
+#### `scheduler(next)`
+
+Creates a `Decorator` that schedules every invocation through the given `Scheduler`:
+
+```typescript
+import { scheduler, continuation } from "@thuum/decor/async";
+
+const next = continuation();
+const sequential = scheduler(next);
+
+async function process(id: string): Promise<string> {
+  return await new Promise((resolve) => {
+    setTimeout(() => resolve(id + " done"), Math.random() * 25);
+  });
+}
+
+// Calls execute one-at-a-time, in the order they were invoked
+const scheduledProcess = sequential(process);
+
+const results = await Promise.all(
+  ["a", "b", "c", "d"].map((id) => scheduledProcess(id)),
+);
+// results => ["a done", "b done", "c done", "d done"] — always in order
+```
+
+#### Serializing Database Writes
+
+```typescript
+import { scheduler, continuation } from "@thuum/decor/async";
+
+const next = continuation();
+const serialize = scheduler(next);
+
+async function saveRecord(record: { id: number; data: string }) {
+  await db.insert(record);
+  return record.id;
+}
+
+// Prevents concurrent inserts that could cause conflicts
+const safeSave = serialize(saveRecord);
+
+// These run sequentially even though they're fired concurrently
+safeSave({ id: 1, data: "first" });
+safeSave({ id: 2, data: "second" });
+safeSave({ id: 3, data: "third" });
+```
+
+#### Custom Scheduler — Throttle
+
+```typescript
+import { scheduler } from "@thuum/decor/async";
+import type { Scheduler } from "@thuum/decor/async";
+
+const throttled: Scheduler = (() => {
+  let last = Promise.resolve() as Promise<unknown>;
+  return (callable) => {
+    const next = last.then(
+      () => new Promise((r) => setTimeout(r, 200)),
+    ).then(callable);
+    last = next.catch(() => {});
+    return next;
+  };
+})();
+
+const throttledScheduler = scheduler(throttled);
+
+async function callApi(endpoint: string) {
+  return await fetch(endpoint).then((r) => r.json());
+}
+
+// At least 200ms between each API call
+const safeCallApi = throttledScheduler(callApi);
+```
+
+#### Shared Queue Across Functions
+
+```typescript
+import { scheduler, continuation } from "@thuum/decor/async";
+
+const next = continuation();
+const sequential = scheduler(next);
+
+const readFile = sequential(async (path: string) => { /* ... */ });
+const writeFile = sequential(async (path: string, data: string) => { /* ... */ });
+
+// Both readFile and writeFile share the same queue,
+// so reads and writes are fully serialized
+await readFile("/tmp/data.txt");
+await writeFile("/tmp/data.txt", "updated");
+```
+
+---
+
+## Exported Types
+
+The package exports the following types for use in type annotations:
+
+```typescript
+import { type Decorator, type Probe } from "@thuum/decor";
+import { type Decorator, type Probe, type Scheduler } from "@thuum/decor/async";
+```
+
+| Type | Module | Description |
+|---|---|---|
+| `Decorator<Args, R>` | `@thuum/decor` | A reusable decorator that preserves function signatures |
+| `Probe<Args, R>` | `@thuum/decor` | A probe decorator for observing function execution |
+| `Decorator<Args, R>` | `@thuum/decor/async` | An async decorator that wraps functions returning `Promise` |
+| `Probe<Args, R>` | `@thuum/decor/async` | An async probe decorator for observing async execution |
+| `Scheduler` | `@thuum/decor/async` | A scheduling strategy for controlling execution timing |
 
 ---
 

@@ -56,13 +56,28 @@ bun run build:ci
 
 ### @thuum/decor
 
-Function decorators for safer error handling and function observability.
+Function decorators for safer error handling, observability, and cross-cutting concerns.
 
-#### Features
+#### Decorator Functions
 
-- **`attempt(fn)`** - Wraps functions to return `Result<T>` instead of throwing errors
-- **`probe(probeFn)`** - Creates decorators for tracing function execution (arguments and results)
-- Async versions available for Promise-based functions
+One-shot functions that decorate a specific target function:
+
+- **`decorate(fn, wrapper)`** - Decorates a single function with a wrapper, preserving its signature
+- **`transform(fn, transformer)`** - Transforms a function into a new one with a potentially different signature (args and/or return type)
+
+#### Decorator Factories
+
+Produce reusable decorators that can be applied to many functions:
+
+- **`attempt`** - Wraps functions to return `Result<T>` instead of throwing errors
+- **`decorator(wrapper)`** - Creates a reusable, type-safe function decorator with full interception power
+- **`middleware(mw)`** - Creates a decorator using a middleware pattern with `next()` callback
+- **`probe(probeFn)`** - Creates a decorator for tracing function execution (arguments and results)
+
+Async versions available at `@thuum/decor/async` include all factories above plus:
+
+- **`scheduler(next)`** - Creates a decorator that routes calls through a scheduling strategy
+- **`continuation(seed?)`** - Creates a sequential FIFO scheduler for serializing execution
 
 #### Example
 
@@ -76,22 +91,22 @@ const divide = (a: number, b: number) => {
 };
 
 const safeDivide = attempt(divide);
-const { value, error } = safeDivide(10, 2);
+const result = safeDivide(10, 2);
 
-if (error) {
-  console.error("Division failed:", error);
+if (!result.ok) {
+  console.error("Division failed:", result.error);
 } else {
-  console.log("Result:", value);
+  console.log("Result:", result.value);
 }
 
 // Function tracing with probe
 const trace = probe((...args) => {
   console.log("Called with:", args);
-  return (result) => {
-    if ("error" in result) {
-      console.log("Failed:", result.error);
+  return ({ ok, error, value }) => {
+    if (ok) {
+      console.log("Returned:", value);
     } else {
-      console.log("Succeeded:", result.value);
+      console.log("Failed:", error);
     }
   };
 });
@@ -99,32 +114,20 @@ const trace = probe((...args) => {
 const tracedHello = trace((name: string) => `Hello, ${name}!`);
 tracedHello("World"); // Logs arguments and result
 
-// Advanced: composing probes as logger and guard
-const logger = (method: string) =>
-  probe((...args: unknown[]) => {
-    console.log(`${method} entered`, ...args);
-    return (result) => {
-      if ("error" in result) {
-        console.log(`${method} threw`, result.error);
-      } else {
-        console.log(`${method} returned`, result.value);
-      }
-    };
-  });
+// Async: sequential execution with scheduler + continuation
+import { scheduler, continuation } from "@thuum/decor/async";
 
-const threshold = (method: string, minimum: number) =>
-  probe((x: number) => {
-    if (x < minimum) {
-      throw new Error(`${method} cannot be less than ${minimum}`);
-    }
-  });
+const next = continuation();
+const sequential = scheduler(next);
 
-const rate = (performance: number) => (performance > 7 ? "good" : "bad");
+const process = sequential(async (id: string) => {
+  await new Promise((r) => setTimeout(r, Math.random() * 25));
+  return `${id} done`;
+});
 
-// Compose: logger wraps threshold wraps rate
-const tracedRate = logger("rate")(threshold("rate", 0)(rate));
-tracedRate(8); // "rate entered 8" → "rate returned good"
-tracedRate(-1); // "rate entered -1" → "rate threw Error: rate cannot be less than 0"
+// Calls execute one-at-a-time, in FIFO order
+const results = await Promise.all(["a", "b", "c"].map((id) => process(id)));
+// results => ["a done", "b done", "c done"]
 ```
 
 ### @thuum/piper
