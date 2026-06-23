@@ -11,6 +11,7 @@
     "test": "bun test packages",
     "test:watch": "bun test packages --watch",
     "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage",
+    "test:coverage": "bun test packages --coverage && bun ./packages/tcc/src/cli.js ./test-results/coverage/lcov.info -o ./test-results/coverage/html",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build"
   },

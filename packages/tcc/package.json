@@ -1,0 +1,44 @@
+{
+  "name": "@thuum/tcc",
+  "version": "0.0.1",
+  "description": "Test code coverage — converts lcov coverage data to Istanbul HTML reports",
+  "keywords": [
+    "coverage",
+    "lcov",
+    "html",
+    "istanbul",
+    "test",
+    "report"
+  ],
+  "author": "Jalepi",
+  "license": "ISC",
+  "homepage": "https://jalepi.github.io/thuum/packages/tcc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalepi/thuum.git",
+    "directory": "packages/tcc"
+  },
+  "dependencies": {
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0"
+  },
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "tcc": "./src/cli.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "package.json"
+  ],
+  "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4"
+  }
+}
