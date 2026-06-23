@@ -6,7 +6,6 @@ describe("decor async package exports tests", () => {
     expect(index).toBeDefined();
     expect(index).toMatchObject({
       ...(await import("./attempt")),
-      ...(await import("./decorate")),
       ...(await import("./decorator")),
       ...(await import("./middleware")),
       ...(await import("./probe")),
