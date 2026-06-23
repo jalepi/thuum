@@ -1,4 +1,5 @@
 export { attempt } from "./attempt";
-export { decorator } from "./decorator";
+export { decorator, type Decorator } from "./decorator";
 export { middleware } from "./middleware";
-export { probe } from "./probe";
+export { probe, type Probe } from "./probe";
+export { scheduler, continuation, type Scheduler } from "./scheduler";

@@ -9,6 +9,7 @@ describe("decor async package exports tests", () => {
       ...(await import("./decorator")),
       ...(await import("./middleware")),
       ...(await import("./probe")),
+      ...(await import("./scheduler")),
     });
   });
 });
