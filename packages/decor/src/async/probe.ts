@@ -1,8 +1,12 @@
-import type { Any, Result } from "../types";
+import type { Any, MaybePromise, Result } from "../types";
 
-type ProbeAsyncFn<Args extends Any[], R> =
+type ProbeFn<Args extends Any[], R> =
   | ((args: Args) => Promise<(result: Result<R>) => Promise<void>>)
   | ((args: Args) => Promise<void>);
+
+export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 extends Args1, R2 extends R1>(
+  fn: (...args: Args2) => MaybePromise<R2>,
+) => (...args: Args2) => Promise<R2>;
 
 /**
  * Creates an async probe decorator
@@ -28,9 +32,9 @@ type ProbeAsyncFn<Args extends Any[], R> =
  * // prints Hello, my friend
  * // prints function succeeded with return: "Hello, my friend"
  */
-export const probe = <const Args extends Any[], const R>(probe: ProbeAsyncFn<Args, R>) => {
-  return <const Args2 extends Args, const R2 extends R>(fn: (...args: Args2) => Promise<R2>) => {
-    return async (...args: Args2): Promise<R2> => {
+export const probe = <const Args extends Any[], const R>(probe: ProbeFn<Args, R>): Probe<Args, R> => {
+  return (fn) => {
+    return async (...args) => {
       const complete = await probe(args);
       try {
         const value = await fn.apply(this, args);
