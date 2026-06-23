@@ -1,8 +1,8 @@
-import type { Any } from "../types";
+import type { Any, MaybePromise } from "../types";
 
-type Decorator<F extends (...args: Any[]) => Promise<unknown>> = <F2 extends F>(
-  fn: F2,
-) => (this: ThisParameterType<F2>, ...args: Parameters<F2>) => ReturnType<F2>;
+export type Decorator<Args1 extends Any[] = Any[], R1 = unknown> = <Args2 extends Args1, R2 extends R1>(
+  fn: (...args: Args2) => MaybePromise<R2>,
+) => (...args: Args2) => Promise<R2>;
 
 /**
  * Creates a type-safe async function decorator.
@@ -32,11 +32,16 @@ type Decorator<F extends (...args: Any[]) => Promise<unknown>> = <F2 extends F>(
  * ```
  */
 export const decorator =
-  <const Func extends (this: unknown, ...args: Any[]) => Promise<unknown>>(
-    wrapper: (fn: Func, ...args: Parameters<Func>) => ReturnType<Func>,
-  ): Decorator<Func> =>
+  <const Args extends Any[], const R>(
+    wrapper: (fn: (...args: Args) => MaybePromise<R>, ...args: Args) => Promise<R>,
+  ): Decorator<Args, R> =>
   (fn) => {
-    return function (this, ...args) {
-      return wrapper(fn.bind(this) as Func, ...args);
+    return async function (this: unknown, ...args) {
+      return (await wrapper(
+        async (...args) => {
+          return await fn.call(this, ...(args as Parameters<typeof fn>));
+        },
+        ...args,
+      )) as ReturnType<typeof fn>;
     };
   };

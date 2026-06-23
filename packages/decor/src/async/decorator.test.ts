@@ -94,8 +94,7 @@ describe("decorator async tests", () => {
     }
 
     const shortCircuit = decorator(async (_fn, ..._args: unknown[]) => {
-      await Promise.resolve();
-      // noop
+      return await Promise.resolve(undefined as unknown as number);
     });
     const decorated = shortCircuit(test);
 

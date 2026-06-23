@@ -92,7 +92,7 @@ describe("decorator tests", () => {
     }
 
     const shortCircuit = decorator((_fn, ..._args: unknown[]) => {
-      // noop
+      return undefined as unknown as number;
     });
     const decorated = shortCircuit(test);
 
