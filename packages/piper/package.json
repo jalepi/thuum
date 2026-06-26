@@ -4,15 +4,24 @@
   "description": "Functional programming utilities for pipe operations and function composition with async support",
   "keywords": [
     "pipe",
+    "pipeline",
     "compose",
+    "function-composition",
     "functional",
+    "fp",
+    "fluent",
     "chain",
     "transform",
+    "data-transformation",
+    "builder",
     "async",
     "typescript",
-    "fp"
+    "type-safe"
   ],
-  "author": "Jalepi",
+  "author": {
+    "name": "Jalepi",
+    "url": "https://github.com/jalepi"
+  },
   "license": "ISC",
   "homepage": "https://jalepi.github.io/thuum/packages/piper",
   "repository": {
@@ -20,10 +29,16 @@
     "url": "git+https://github.com/jalepi/thuum.git",
     "directory": "packages/piper"
   },
+  "bugs": {
+    "url": "https://github.com/jalepi/thuum/issues"
+  },
   "scripts": {
     "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
-    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "release": "bun publish",
+    "release:dry": "bun publish --dry-run",
+    "release:pack": "bun pm pack"
   },
   "devDependencies": {
     "tslib": "catalog:dev",
@@ -60,5 +75,8 @@
     "src",
     "README.md",
     "package.json"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
