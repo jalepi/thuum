@@ -4,11 +4,11 @@ name: Continuous Deployment
 # Also ensure the NPM_TOKEN secret is configured in the repository settings.
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "packages/*/package.json"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/*/package.json"
 
 jobs:
   publish:
