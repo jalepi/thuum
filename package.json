@@ -15,7 +15,8 @@
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build",
     "release": "bun --filter '*' release",
-    "release:dry": "bun --filter '*' release:dry"
+    "release:dry": "bun --filter '*' release:dry",
+    "release:pack": "bun --filter '*' release:pack --destination ../.."
   },
   "keywords": [],
   "author": "",
