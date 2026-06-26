@@ -4,13 +4,24 @@
   "description": "Function decorators for error handling and observability",
   "keywords": [
     "decorator",
+    "functional",
+    "middleware",
+    "observability",
+    "higher-order-function",
+    "wrapper",
+    "composable",
+    "retry",
+    "memoize",
     "error-handling",
-    "attempt",
-    "probe",
     "tracing",
-    "typescript"
+    "typescript",
+    "async",
+    "aop"
   ],
-  "author": "Jalepi",
+  "author": {
+    "name": "Jalepi",
+    "url": "https://github.com/jalepi"
+  },
   "license": "ISC",
   "homepage": "https://jalepi.github.io/thuum/packages/decor",
   "repository": {
@@ -18,10 +29,15 @@
     "url": "git+https://github.com/jalepi/thuum.git",
     "directory": "packages/decor"
   },
+  "bugs": {
+    "url": "https://github.com/jalepi/thuum/issues"
+  },
   "scripts": {
     "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
-    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "release": "bun publish",
+    "release:dry": "bun publish --dry-run"
   },
   "devDependencies": {
     "@types/bun": "catalog:dev",
@@ -59,5 +75,8 @@
     "src",
     "README.md",
     "package.json"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
