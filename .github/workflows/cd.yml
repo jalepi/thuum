@@ -50,8 +50,12 @@ jobs:
       - name: Publish packages to NPM
         run: |
           for tarball in *.tgz; do
-            if [ -f "$tarball" ]; then
-              echo "Publishing $tarball..."
-              npm publish "$tarball" --access public
+            if [ ! -f "$tarball" ]; then
+              continue
+            fi
+
+            echo "Publishing $tarball..."
+            if ! output=$(npm publish "$tarball" --access public 2>&1); then
+              echo "::warning::Failed to publish $tarball: $output"
             fi
           done
