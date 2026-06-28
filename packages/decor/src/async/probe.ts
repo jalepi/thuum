@@ -3,28 +3,23 @@ import type { Any, MaybePromise, Result } from "../types";
 /**
  * The async function signature accepted by {@link probe}.
  *
- * A `ProbeFn` is called with the decorated function's arguments (as a tuple)
- * each time the decorated function is invoked. Because it is async, it can
- * perform asynchronous setup (e.g. opening a span, starting a timer, writing
- * to a log stream) before the target function executes.
+ * A `ProbeFn` is called with the decorated function's arguments each time the
+ * decorated function is invoked. Because it is async, it can perform
+ * asynchronous setup (e.g. opening a span, starting a timer, writing to a log
+ * stream) before the target function executes.
  *
  * Two forms are supported:
- * - **Fire-and-forget** — `(args) => Promise<void>` — observe or mutate
- *   arguments only; no completion callback.
- * - **With completion** — `(args) => Promise<(result: Result<R>) => Promise<void>>`
+ * - **Fire-and-forget** — `(...args) => Promise<void>` — observe arguments
+ *   only; no completion callback.
+ * - **With completion** — `(...args) => Promise<(result: Result<R>) => Promise<void>>`
  *   — observe the arguments on entry and the outcome on exit, both
  *   asynchronously.
  *
- * Unlike the sync {@link import("../probe").probe | probe}, the async version
- * receives arguments as a single tuple parameter rather than spread, allowing
- * the probe to mutate the arguments array before the target function sees them.
- *
- * @typeParam Args - The argument tuple type the probe will receive.
+ * @typeParam Args - The argument types the probe will receive.
  * @typeParam R - The return type used in the completion {@link Result}.
  */
 type ProbeFn<Args extends Any[], R> =
-  | ((args: Args) => Promise<(result: Result<R>) => Promise<void>>)
-  | ((args: Args) => Promise<void>);
+  ((...args: Args) => Promise<(result: Result<R>) => Promise<void>>) | ((...args: Args) => Promise<void>);
 
 /**
  * A decorator created by the async {@link probe} that instruments a function
@@ -69,16 +64,14 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * callback after the target function settles. The decorated function always
  * returns a `Promise`, even if the original function was synchronous.
  *
- * The probe callback receives the arguments **as a tuple** (not spread),
- * which allows the probe to mutate the arguments array before the target
- * function sees them. This differs from the sync
- * {@link import("../probe").probe | probe} where arguments are spread.
+ * The probe callback receives the arguments spread, just like the sync
+ * {@link import("../probe").probe | probe}.
  *
  * This is useful for async logging, distributed tracing (e.g. OpenTelemetry
  * spans), async metrics collection, request auditing, and argument
  * preprocessing.
  *
- * @typeParam Args - The argument tuple type the probe will receive.
+ * @typeParam Args - The argument types the probe will receive.
  * @typeParam R - The return type used in the completion {@link Result}.
  *
  * @param probe - A {@link ProbeFn} called on each invocation to asynchronously
@@ -90,7 +83,7 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * ```ts
  * import { probe } from "@thuum/decor/async";
  *
- * const trace = probe(async (args) => {
+ * const trace = probe(async (...args) => {
  *   console.log("called with:", args);
  *   return async ({ ok, error, value }) => {
  *     if (ok) {
@@ -111,7 +104,7 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * ```ts
  * import { probe } from "@thuum/decor/async";
  *
- * const logArgs = probe(async (args) => {
+ * const logArgs = probe(async (...args) => {
  *   await sendToAnalytics("invocation", { args });
  * });
  *
@@ -122,25 +115,12 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * await fetchUser(42); // analytics event sent, user returned
  * ```
  *
- * @example Argument mutation — modify args before the target runs
- * ```ts
- * import { probe } from "@thuum/decor/async";
- *
- * const negate = probe(async (args: [a: number, b: number]) => {
- *   args[0] = -args[0];
- *   args[1] = -args[1];
- * });
- *
- * const add = negate(async (a: number, b: number) => a + b);
- * await add(1, 2); // => -3 (args were negated before add ran)
- * ```
- *
  * @example Distributed tracing — wrap calls in spans
  * ```ts
  * import { probe } from "@thuum/decor/async";
  *
  * const traced = (name: string) =>
- *   probe(async (args) => {
+ *   probe(async (...args) => {
  *     const span = tracer.startSpan(name, { attributes: { args } });
  *     return async ({ ok, error }) => {
  *       if (!ok) span.recordException(error as Error);
@@ -159,7 +139,7 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * ```ts
  * import { probe } from "@thuum/decor/async";
  *
- * const errorReporter = probe(async (args) => {
+ * const errorReporter = probe(async (...args) => {
  *   return async ({ ok, error }) => {
  *     if (!ok) {
  *       await reportError(error, { context: args });
@@ -179,8 +159,8 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
  * ```ts
  * import { probe } from "@thuum/decor/async";
  *
- * // Only decorates functions that take [id: number]
- * const auditLog = probe(async ([id]: [id: number]) => {
+ * // Only decorates functions that take (id: number)
+ * const auditLog = probe(async (id: number) => {
  *   console.log(`accessing record ${id}`);
  *   return async ({ ok, value }) => {
  *     if (ok) console.log(`record ${id}:`, value);
@@ -196,7 +176,7 @@ export type Probe<Args1 extends Any[] = Any[], R1 = unknown> = <const Args2 exte
 export const probe = <const Args extends Any[], const R>(probe: ProbeFn<Args, R>): Probe<Args, R> => {
   return (fn) => {
     return async (...args) => {
-      const complete = await probe(args);
+      const complete = await probe(...args);
       try {
         const value = await fn.apply(this, args);
         await complete?.({ ok: true, value });
