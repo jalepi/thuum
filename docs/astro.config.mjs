@@ -23,6 +23,7 @@ export default defineConfig({
           items: [
             { label: "@thuum/piper", slug: "packages/piper" },
             { label: "@thuum/decor", slug: "packages/decor" },
+            { label: "@thuum/event-emitter", slug: "packages/event-emitter" },
             { label: "@thuum/promising", slug: "packages/promising" },
             { label: "@thuum/transport", slug: "packages/transport" },
             { label: "@thuum/channels", slug: "packages/channels" },
