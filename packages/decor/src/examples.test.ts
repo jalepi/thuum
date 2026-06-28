@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { probe, decorator, middleware, attempt, decorate } from "./index";
 import { decorator as asyncDecorator, middleware as asyncMiddleware, probe as asyncProbe } from "./async/index";
 import { scheduler, continuation } from "./async/scheduler";
@@ -81,7 +81,7 @@ describe("Observability", () => {
       let count = 0;
       return probe((..._args: unknown[]) => {
         count++;
-        logs.push(`[${name}] invocation #${count}`);
+        logs.push(`[${name}] invocation #${count.toFixed(0)}`);
       });
     };
 
@@ -98,7 +98,7 @@ describe("Observability", () => {
 
     const withTracing = (spanName: string) =>
       probe((..._args: unknown[]) => {
-        const traceId = `trace-${++traceCounter}`;
+        const traceId = `trace-${(++traceCounter).toFixed(0)}`;
         spans.push({ traceId, spanName, direction: "enter" });
         return (result) => {
           spans.push({
@@ -165,7 +165,7 @@ describe("Precondition Guards", () => {
 
   it("input validation — reject invalid arguments", () => {
     const validatePositive = decorator((fn, n: number) => {
-      if (n < 0) throw new RangeError(`Expected positive number, got ${n}`);
+      if (n < 0) throw new RangeError(`Expected positive number, got ${n.toFixed(0)}`);
       return fn(n);
     });
 
@@ -189,8 +189,12 @@ describe("Precondition Guards", () => {
     });
 
     expect(processUser({ name: "Alice" })).toBe("ALICE");
-    expect(() => processUser(null!)).toThrow("Invariant violation: user must not be null");
-    expect(() => processUser(undefined!)).toThrow("Invariant violation: user must not be null");
+    expect(() => processUser(null as unknown as { name: string })).toThrow(
+      "Invariant violation: user must not be null",
+    );
+    expect(() => processUser(undefined as unknown as { name: string })).toThrow(
+      "Invariant violation: user must not be null",
+    );
   });
 });
 
@@ -239,7 +243,7 @@ describe("Resilience", () => {
     )(async (threshold: number) => {
       callCount++;
       if (callCount < threshold) throw new Error("transient failure");
-      return "success";
+      return await Promise.resolve("success");
     });
 
     // Succeeds on 3rd attempt
@@ -259,7 +263,11 @@ describe("Resilience", () => {
       asyncDecorator(async (fn, ...args: unknown[]) => {
         return await Promise.race([
           fn(...args),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => {
+              reject(new Error("Timeout"));
+            }, ms),
+          ),
         ]);
       });
 
@@ -306,7 +314,7 @@ describe("Resilience", () => {
       100,
     )(async () => {
       if (shouldFail) throw new Error("service down");
-      return "ok";
+      return await Promise.resolve("ok");
     });
 
     // Trip the circuit breaker
@@ -320,25 +328,6 @@ describe("Resilience", () => {
     await new Promise((r) => setTimeout(r, 110));
     shouldFail = false;
     expect(await service()).toBe("ok");
-  });
-
-  it("fallback — execute alternative logic on failure", async () => {
-    const withFallback = <R>(fallbackValue: R) =>
-      asyncDecorator(async (fn, ...args: unknown[]) => {
-        try {
-          return await fn(...args);
-        } catch {
-          return fallbackValue as ReturnType<typeof fn>;
-        }
-      });
-
-    const fetchConfig = withFallback({ theme: "light" })(async (shouldFail: boolean) => {
-      if (shouldFail) throw new Error("network error");
-      return { theme: "dark" };
-    });
-
-    expect(await fetchConfig(false)).toEqual({ theme: "dark" });
-    expect(await fetchConfig(true)).toEqual({ theme: "light" });
   });
 });
 
@@ -363,13 +352,14 @@ describe("Lifecycle Hooks", () => {
       });
     };
 
-    const withDb = ensureInitialized(async () => {
+    const withDb = ensureInitialized(() => {
       events.push("connecting");
+      return Promise.resolve();
     });
 
     const query = withDb(async (sql: string) => {
       events.push(`query:${sql}`);
-      return `result:${sql}`;
+      return await Promise.resolve(`result:${sql}`);
     });
 
     expect(await query("SELECT 1")).toBe("result:SELECT 1");
@@ -438,7 +428,7 @@ describe("Flow Control", () => {
       let lastCall = 0;
       return decorator((fn, ...args: unknown[]) => {
         const now = Date.now();
-        if (now - lastCall < limitMs) return undefined as ReturnType<typeof fn>;
+        if (now - lastCall < limitMs) return undefined;
         lastCall = now;
         return fn(...args);
       });
@@ -463,7 +453,6 @@ describe("Flow Control", () => {
       return decorator((fn, ...args: unknown[]) => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => fn(...args), waitMs);
-        return undefined as ReturnType<typeof fn>;
       });
     };
 
@@ -510,7 +499,7 @@ describe("Caching", () => {
       const cache = new Map<string, unknown>();
       return decorator((fn, ...args: unknown[]) => {
         const key = JSON.stringify(args);
-        if (cache.has(key)) return cache.get(key) as ReturnType<typeof fn>;
+        if (cache.has(key)) return cache.get(key);
         const result = fn(...args);
         cache.set(key, result);
         return result;
@@ -534,7 +523,7 @@ describe("Caching", () => {
       const cache = new Map<string, unknown>();
       return decorator((fn, ...args: unknown[]) => {
         const key = JSON.stringify(args);
-        if (cache.has(key)) return cache.get(key) as ReturnType<typeof fn>;
+        if (cache.has(key)) return cache.get(key);
         const result = fn(...args);
         cache.set(key, result);
         return result;
@@ -559,7 +548,7 @@ describe("Caching", () => {
         const key = JSON.stringify(args);
         const cached = cache.get(key);
         if (cached && Date.now() < cached.expires) {
-          return cached.value as ReturnType<typeof fn>;
+          return cached.value;
         }
         const result = await fn(...args);
         cache.set(key, { value: result, expires: Date.now() + ttlMs });
@@ -570,7 +559,7 @@ describe("Caching", () => {
     let fetchCount = 0;
     const fetchUser = withTTLCache(50)(async (id: number) => {
       fetchCount++;
-      return { id, name: `User ${id}` };
+      return await Promise.resolve({ id, name: `User ${String(id)}` });
     });
 
     expect(await fetchUser(1)).toEqual({ id: 1, name: "User 1" });
@@ -596,12 +585,13 @@ describe("Composability", () => {
     const events: string[] = [];
 
     const withLogging = (name: string) =>
-      asyncProbe(async (...args: unknown[]) => {
+      asyncProbe((...args: unknown[]) => {
         events.push(`[${name}] \u2192 ${JSON.stringify(args)}`);
-        return async (result) => {
+        return Promise.resolve((result: { ok: boolean; value?: unknown; error?: unknown }) => {
           if (result.ok) events.push(`[${name}] \u2190 ${JSON.stringify(result.value)}`);
           else events.push(`[${name}] \u2717 ${(result.error as Error).message}`);
-        };
+          return Promise.resolve();
+        });
       });
 
     const withRetry = (attempts: number) =>
@@ -621,7 +611,11 @@ describe("Composability", () => {
       asyncDecorator(async (fn, ...args: unknown[]) => {
         return await Promise.race([
           fn(...args),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => {
+              reject(new Error("Timeout"));
+            }, ms),
+          ),
         ]);
       });
 
@@ -631,7 +625,7 @@ describe("Composability", () => {
         withTimeout(100)(async (id: number) => {
           callCount++;
           if (callCount < 2) throw new Error("transient");
-          return { id, name: "Alice" };
+          return await Promise.resolve({ id, name: "Alice" });
         }),
       ),
     );

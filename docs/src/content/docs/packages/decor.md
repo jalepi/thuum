@@ -220,7 +220,7 @@ processUser(null);              // throws TypeError
 
 *Control failure modes declaratively.*
 
-Protect against transient and systemic failures. Includes the Result pattern (`attempt`), retry, timeout, circuit breaker, and fallback strategies.
+Protect against transient and systemic failures. Includes the Result pattern (`attempt`), retry, timeout, and circuit breaker strategies.
 
 ```typescript
 import { attempt } from "@thuum/decor";
@@ -319,24 +319,7 @@ const withCircuitBreaker = (threshold: number, cooldownMs: number) => {
 };
 ```
 
-```typescript
-import { decorator } from "@thuum/decor/async";
 
-// Fallback — execute alternative logic on failure
-const withFallback = <R>(fallbackValue: R) =>
-  decorator(async (fn, ...args: unknown[]) => {
-    try {
-      return await fn(...args);
-    } catch {
-      return fallbackValue as ReturnType<typeof fn>;
-    }
-  });
-
-const fetchConfig = withFallback({ theme: "light" })(async () => {
-  const res = await fetch("/api/config");
-  return res.json();
-});
-```
 
 ---
 
