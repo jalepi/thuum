@@ -7,7 +7,7 @@ import { freeze } from "../utils";
  *
  * Satisfied by Node.js `EventEmitter` or any object with a compatible `emit` method.
  */
-export interface EmitterSource extends Pick<EventEmitter, "emit"> {}
+export type EmitterSource = Pick<EventEmitter, "emit">;
 
 /**
  * Wraps a Node.js `EventEmitter` as a typed {@link Emitter}.

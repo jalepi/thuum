@@ -7,7 +7,7 @@ import { freeze } from "../utils";
  *
  * Satisfied by Node.js `EventEmitter` or any object with compatible `on`/`off` methods.
  */
-export interface ListenerSource extends Pick<EventEmitter, "on" | "off"> {}
+export type ListenerSource = Pick<EventEmitter, "on" | "off">;
 
 /**
  * Wraps a Node.js `EventEmitter` as a typed {@link Listener}.
