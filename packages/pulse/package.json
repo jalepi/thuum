@@ -1,6 +1,5 @@
 {
-  "name": "@thuum/example",
-  "private": true,
+  "name": "@thuum/pulse",
   "version": "0.0.0",
   "description": "Typescript example library",
   "keywords": [],
@@ -9,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jalepi/thuum.git",
-    "directory": "packages/example"
+    "directory": "packages/pulse"
   },
   "scripts": {
     "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
@@ -39,6 +38,7 @@
   "files": [
     "dist",
     "src",
-    "package.json"
+    "package.json",
+    "readme.md"
   ]
 }
