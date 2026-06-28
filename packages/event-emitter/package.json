@@ -1,0 +1,111 @@
+{
+  "name": "@thuum/event-emitter",
+  "version": "0.0.1",
+  "description": "Type-safe event emitter adapters for EventTarget, MessagePort, Node.js EventEmitter, and RxJS",
+  "keywords": [
+    "event-emitter",
+    "events",
+    "eventtarget",
+    "messageport",
+    "broadcastchannel",
+    "observable",
+    "rxjs",
+    "pub-sub",
+    "typed-events",
+    "type-safe",
+    "adapter",
+    "listener",
+    "typescript"
+  ],
+  "author": {
+    "name": "Jalepi",
+    "url": "https://github.com/jalepi"
+  },
+  "license": "ISC",
+  "homepage": "https://jalepi.github.io/thuum/packages/event-emitter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalepi/thuum.git",
+    "directory": "packages/event-emitter"
+  },
+  "bugs": {
+    "url": "https://github.com/jalepi/thuum/issues"
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "release": "bun publish",
+    "release:dry": "bun publish --dry-run",
+    "release:pack": "bun pm pack"
+  },
+  "devDependencies": {
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev"
+  },
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./event-target": {
+      "import": {
+        "types": "./dist/esm/event-target/index.d.ts",
+        "default": "./dist/esm/event-target/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/event-target/index.d.ts",
+        "default": "./dist/cjs/event-target/index.js"
+      }
+    },
+    "./message-port": {
+      "import": {
+        "types": "./dist/esm/message-port/index.d.ts",
+        "default": "./dist/esm/message-port/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-port/index.d.ts",
+        "default": "./dist/cjs/message-port/index.js"
+      }
+    },
+    "./node-events": {
+      "import": {
+        "types": "./dist/esm/node-events/index.d.ts",
+        "default": "./dist/esm/node-events/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/node-events/index.d.ts",
+        "default": "./dist/cjs/node-events/index.js"
+      }
+    },
+    "./rxjs": {
+      "import": {
+        "types": "./dist/esm/rxjs/index.d.ts",
+        "default": "./dist/esm/rxjs/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/rxjs/index.d.ts",
+        "default": "./dist/cjs/rxjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

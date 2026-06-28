@@ -23,8 +23,7 @@ import type { Any, MaybePromise, Result } from "../types";
  * @typeParam R - The return type used in the completion {@link Result}.
  */
 type ProbeFn<Args extends Any[], R> =
-  | ((args: Args) => Promise<(result: Result<R>) => Promise<void>>)
-  | ((args: Args) => Promise<void>);
+  ((args: Args) => Promise<(result: Result<R>) => Promise<void>>) | ((args: Args) => Promise<void>);
 
 /**
  * A decorator created by the async {@link probe} that instruments a function
