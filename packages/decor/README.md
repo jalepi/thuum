@@ -166,12 +166,14 @@ send("world"); // throws: Cannot invoke: resource is disposed
 import { middleware } from "@thuum/decor";
 
 // Already-initialized / idempotency — execute only once
-const once = middleware((next) => {
+const once = (() => {
   let initialized = false;
-  if (initialized) return;
-  initialized = true;
-  next();
-});
+  return middleware((next) => {
+    if (initialized) return;
+    initialized = true;
+    next();
+  });
+})();
 
 const setup = once(() => {
   console.log("Initializing...");
