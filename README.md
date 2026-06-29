@@ -6,7 +6,7 @@ A TypeScript monorepo providing utility libraries for functional programming, er
 
 Thuum is a collection of focused, type-safe TypeScript libraries designed to enhance functional programming patterns and inter-component communication. The workspace includes:
 
-- **[@thuum/decor](#thuum-decor)** - Function decorators for error handling and observability
+- **[@thuum/decor](#thuum-decor)** - Composable function decorator primitives for non-functional requirements and flow control
 - **[@thuum/piper](#thuum-piper)** - Functional pipe operators and function chaining with async support
 - **[@thuum/promising](#thuum-promising)** - Async context management and Promise utilities
 - **[@thuum/transport](#thuum-transport)** - Abstract message transport layer
@@ -56,78 +56,76 @@ bun run build:ci
 
 ### @thuum/decor
 
-Function decorators for safer error handling, observability, and cross-cutting concerns.
+Type-safe function decorator toolkit for aspect-oriented programming — build reusable, composable patterns for observability, resilience, and flow control.
 
-#### Decorator Functions
+#### Use Cases
 
-One-shot functions that decorate a specific target function:
+- 🔍 **Observability** — Trace, log, and measure function calls without modifying behavior
+- 🛡️ **Precondition Guards** — Prevent execution when contracts are unmet
+- 🔄 **Lifecycle Hooks** — Trigger setup or teardown around execution
+- 💪 **Resilience** — Retry, timeout, circuit-break, and fallback on failure
+- ⚡ **Flow Control** — Throttle, debounce, serialize, and limit concurrency
+- 📦 **Caching** — Memoize and replay results to avoid redundant work
+- 🧩 **Composability** — Stack decorators declaratively, type-safe and zero-dependency
 
-- **`decorate(fn, wrapper)`** - Decorates a single function with a wrapper, preserving its signature
-- **`transform(fn, transformer)`** - Transforms a function into a new one with a potentially different signature (args and/or return type)
+#### Primitives
 
-#### Decorator Factories
-
-Produce reusable decorators that can be applied to many functions:
-
-- **`attempt`** - Wraps functions to return `Result<T>` instead of throwing errors
-- **`decorator(wrapper)`** - Creates a reusable, type-safe function decorator with full interception power
-- **`middleware(mw)`** - Creates a decorator using a middleware pattern with `next()` callback
-- **`probe(probeFn)`** - Creates a decorator for tracing function execution (arguments and results)
-
-Async versions available at `@thuum/decor/async` include all factories above plus:
-
-- **`scheduler(next)`** - Creates a decorator that routes calls through a scheduling strategy
-- **`continuation(seed?)`** - Creates a sequential FIFO scheduler for serializing execution
+- **`decorate(fn, wrapper)`** / **`transform(fn, transformer)`** — One-shot decoration of a specific function
+- **`decorator(wrapper)`** — Reusable decorator factory with full interception power
+- **`middleware(mw)`** — Middleware pattern with `next()` callback
+- **`probe(probeFn)`** — Passive observation of function execution
+- **`attempt(fn)`** — Convert throwing functions into `Result<T>`-returning ones
+- **`scheduler(next)`** / **`continuation(seed?)`** — Async execution scheduling (FIFO, serialization)
 
 #### Example
 
 ```typescript
-import { attempt, probe } from "@thuum/decor";
+import { probe, decorator } from "@thuum/decor";
+import { decorator as asyncDecorator } from "@thuum/decor/async";
 
-// Error handling with attempt
-const divide = (a: number, b: number) => {
-  if (b === 0) throw new Error("Divide by zero");
-  return a / b;
-};
+// Observability — structured logging
+const withLogging = (name: string) =>
+  probe((...args: unknown[]) => {
+    console.log(`[${name}] called with:`, args);
+    return (result) => {
+      if (result.ok) console.log(`[${name}] returned:`, result.value);
+      else console.error(`[${name}] threw:`, result.error);
+    };
+  });
 
-const safeDivide = attempt(divide);
-const result = safeDivide(10, 2);
+// Guard — prevent execution when disposed
+const guardDisposed = (isDisposed: () => boolean) =>
+  decorator((fn, ...args: unknown[]) => {
+    if (isDisposed()) throw new Error("Resource is disposed");
+    return fn(...args);
+  });
 
-if (!result.ok) {
-  console.error("Division failed:", result.error);
-} else {
-  console.log("Result:", result.value);
-}
-
-// Function tracing with probe
-const trace = probe((...args) => {
-  console.log("Called with:", args);
-  return ({ ok, error, value }) => {
-    if (ok) {
-      console.log("Returned:", value);
-    } else {
-      console.log("Failed:", error);
+// Resilience — retry with backoff
+const withRetry = (maxAttempts: number, baseDelayMs: number) =>
+  asyncDecorator(async (fn, ...args: unknown[]) => {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
+        }
+      }
     }
-  };
-});
+    throw lastError;
+  });
 
-const tracedHello = trace((name: string) => `Hello, ${name}!`);
-tracedHello("World"); // Logs arguments and result
+// Compose: logging (outermost) → retry → target
+const fetchUser = withLogging("fetchUser")(
+  withRetry(3, 500)(async (id: number) => {
+    const res = await fetch(`/api/users/${id}`);
+    return res.json();
+  })
+);
 
-// Async: sequential execution with scheduler + continuation
-import { scheduler, continuation } from "@thuum/decor/async";
-
-const next = continuation();
-const sequential = scheduler(next);
-
-const process = sequential(async (id: string) => {
-  await new Promise((r) => setTimeout(r, Math.random() * 25));
-  return `${id} done`;
-});
-
-// Calls execute one-at-a-time, in FIFO order
-const results = await Promise.all(["a", "b", "c"].map((id) => process(id)));
-// results => ["a done", "b done", "c done"]
+await fetchUser(42);
 ```
 
 ### @thuum/piper

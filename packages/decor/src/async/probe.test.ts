@@ -4,7 +4,7 @@ import type { Result } from "../types";
 
 function createSubject() {
   const spies = { args: vi.fn(), ret: vi.fn() };
-  const decor = probe(async (args) => {
+  const decor = probe(async (...args: unknown[]) => {
     spies.args(args);
     await Promise.resolve();
     return async (result) => {
@@ -42,27 +42,13 @@ describe("probe async decorator tests", () => {
 
   it("should probe without return", () => {
     const spy = vi.fn();
-    const decor = probe(async (args) => {
+    const decor = probe(async (...args: unknown[]) => {
       spy(await Promise.resolve(args));
     });
     const fn = decor((x: number) => Promise.resolve(x + 1));
 
     expect(fn(2)).resolves.toBe(3);
     expect(spy).toHaveBeenCalledWith([2]);
-  });
-
-  it("should probe modify arguments", () => {
-    const decor = probe(async (args: [a: number, b: number]) => {
-      args[0] = await Promise.resolve(-args[0]);
-      args[1] = await Promise.resolve(-args[1]);
-      args.push(await Promise.resolve(42));
-    });
-
-    const spy = vi.fn(async (a: number, b: number) => await Promise.resolve(a + b));
-    const add = decor(spy);
-
-    expect(add(1, 2)).resolves.toBe(-3);
-    expect(spy).toHaveBeenCalledWith(-1, -2, 42);
   });
 
   it("should probe typed", () => {
@@ -75,7 +61,7 @@ describe("probe async decorator tests", () => {
 
     const spyArgs = vi.fn<(a: A) => void>();
     const spyResult = vi.fn<(result: Result<A>) => void>();
-    const decor = probe(async ([a]: [a: A]) => {
+    const decor = probe(async (a: A) => {
       spyArgs(a);
       await Promise.resolve();
       return async (result: Result<A>) => {
