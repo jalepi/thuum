@@ -25,6 +25,7 @@
     "@eslint/js": "catalog:dev",
     "@happy-dom/global-registrator": "catalog:dev",
     "@types/bun": "catalog:dev",
+    "@types/node": "catalog:dev",
     "eslint": "catalog:dev",
     "eslint-config-prettier": "catalog:dev",
     "eslint-plugin-prettier": "catalog:dev",
