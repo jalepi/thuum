@@ -1,0 +1,7 @@
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/*.bench.ts
+
+# Test fixtures
+**/__fixtures__/**

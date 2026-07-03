@@ -1,7 +1,7 @@
 import type { StructLike } from "../base";
 import type { Transport, SchemaLike } from "./types";
 
-export const withStandardSchemas =
+export const withSchemas =
   <T extends StructLike>(schemas: SchemaLike<T>) =>
   (transport: Transport<T>): Transport<T> => {
     return {

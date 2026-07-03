@@ -1,13 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "rootDir": "${configDir}/src"
+    "rootDir": "${configDir}/src",
   },
   "exclude": [
     "${configDir}/**/*.test.ts",
     "${configDir}/**/*.spec.ts",
     "${configDir}/**/*.bench.ts",
+    "${configDir}/**/__fixtures__/**",
     "${configDir}/dist",
-    "${configDir}/node_modules"
-  ]
+    "${configDir}/node_modules",
+  ],
 }
