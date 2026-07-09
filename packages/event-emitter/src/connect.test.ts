@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { connect } from "./connect";
 import type { Emitter, EventMap, Listener } from "./types";
 

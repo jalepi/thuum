@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "bun:test";
+import { describe, expect, it, vi } from "bun:test";
 import { waitUntil } from "../../../test-helpers";
 import createContext, { type AsyncContextEvent, type AsyncContextOptions } from "./async-context";
 

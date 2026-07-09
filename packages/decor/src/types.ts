@@ -1,5 +1,4 @@
-/** Convenience alias for `any` used to relax generic constraints in decorator signatures. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: use any with alias
 export type Any = any;
 
 /** Represents any function for use in type constraints */

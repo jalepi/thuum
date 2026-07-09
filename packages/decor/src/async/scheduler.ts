@@ -1,5 +1,5 @@
-import { decorator, type Decorator } from "./decorator";
 import type { MaybePromise } from "../types";
+import { type Decorator, decorator } from "./decorator";
 
 /**
  * A scheduling strategy that controls when a callable unit of work is executed.

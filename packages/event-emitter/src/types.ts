@@ -1,10 +1,4 @@
-/**
- * Internal utility alias for `any` to suppress ESLint `@typescript-eslint/no-explicit-any`
- * warnings throughout source files without requiring per-line disable comments.
- *
- * @internal
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: use any with alias
 export type Any = any;
 
 /**

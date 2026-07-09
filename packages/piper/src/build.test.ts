@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "bun:test";
+import { describe, expect, it, vi } from "bun:test";
 import build from "./build";
 
 describe("builder tests", () => {

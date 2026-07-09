@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
-import { probe, decorator, middleware, attempt, decorate } from "./index";
+import { describe, expect, it } from "bun:test";
 import { decorator as asyncDecorator, middleware as asyncMiddleware, probe as asyncProbe } from "./async/index";
-import { scheduler, continuation } from "./async/scheduler";
+import { continuation, scheduler } from "./async/scheduler";
+import { attempt, decorate, decorator, middleware, probe } from "./index";
 import { transform } from "./transform";
 
 // =============================================================================
@@ -228,7 +228,7 @@ describe("Resilience", () => {
           } catch (error) {
             lastError = error;
             if (attempt < maxAttempts) {
-              const delay = baseDelayMs * Math.pow(2, attempt - 1);
+              const delay = baseDelayMs * 2 ** (attempt - 1);
               await new Promise((r) => setTimeout(r, delay));
             }
           }

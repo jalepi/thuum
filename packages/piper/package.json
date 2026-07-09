@@ -1,6 +1,6 @@
 {
   "name": "@thuum/piper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Functional programming utilities for pipe operations and function composition with async support",
   "keywords": [
     "pipe",

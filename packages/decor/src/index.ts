@@ -1,5 +1,5 @@
 export { attempt } from "./attempt";
 export { decorate } from "./decorate";
-export { decorator, type Decorator } from "./decorator";
+export { type Decorator, decorator } from "./decorator";
 export { middleware } from "./middleware";
-export { probe, type Probe } from "./probe";
+export { type Probe, probe } from "./probe";

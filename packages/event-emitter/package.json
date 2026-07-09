@@ -1,6 +1,6 @@
 {
   "name": "@thuum/event-emitter",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Type-safe event emitter adapters for EventTarget, MessagePort, Node.js EventEmitter, and RxJS",
   "keywords": [
     "event-emitter",

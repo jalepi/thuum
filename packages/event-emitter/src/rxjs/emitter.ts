@@ -1,4 +1,4 @@
-import type { EventMap, EventUnion, Emitter } from "../types";
+import type { Emitter, EventMap, EventUnion } from "../types";
 import { freeze } from "../utils";
 
 /**

@@ -1,4 +1,4 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { listener } from "./listener";
 import { createFakeMessageTarget, flush } from "./utils";
 

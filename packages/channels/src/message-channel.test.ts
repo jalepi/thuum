@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, onTestFinished } from "bun:test";
-import { waitFor } from "../../../test-helpers";
+import { describe, expect, it, onTestFinished, vi } from "bun:test";
 import { createTransport } from "@thuum/transport";
+import { waitFor } from "../../../test-helpers";
 import { createChannel } from "./message-channel";
 import type { MessageSchema } from "./types";
 

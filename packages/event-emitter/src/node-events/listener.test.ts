@@ -1,4 +1,4 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { EventEmitter } from "node:events";
 import { listener } from "./listener";
 

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "bun:test";
-import { probe } from "./probe";
+import { describe, expect, it, vi } from "bun:test";
 import type { Result } from "../types";
+import { probe } from "./probe";
 
 function createSubject() {
   const spies = { args: vi.fn(), ret: vi.fn() };

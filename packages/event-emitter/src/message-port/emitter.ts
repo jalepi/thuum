@@ -1,6 +1,5 @@
-import type { Emitter, EventMap, EventUnion } from "../types";
+import type { Any, Emitter, EventMap, EventUnion } from "../types";
 import { freeze } from "../utils";
-import type { Any } from "../types";
 
 /**
  * Minimal dispatcher interface required by the message-port emitter adapter.
