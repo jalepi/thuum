@@ -1,6 +1,6 @@
 import type { MessageTransport } from "@thuum/transport";
 import { traceError } from "./result";
-import type { MessageChannel, MessageMapFromSchema, MessageSchema, MessageSender, MessageReceiver } from "./types";
+import type { MessageChannel, MessageMapFromSchema, MessageReceiver, MessageSchema, MessageSender } from "./types";
 
 /**
  * Creates a message receiver that subscribes to topics and validates incoming messages against the schema.

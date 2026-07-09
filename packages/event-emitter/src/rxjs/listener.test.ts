@@ -1,7 +1,7 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
+import type { EventUnion } from "../types";
 import { listener } from "./listener";
 import { createSubject } from "./utils";
-import type { EventUnion } from "../types";
 
 describe("listener (rxjs)", () => {
   it("should receive the typed payload filtered by event name", () => {

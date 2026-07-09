@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "bun:test";
-import { continuation, scheduler, type Scheduler } from "./scheduler";
+import { describe, expect, it, vi } from "bun:test";
+import { continuation, type Scheduler, scheduler } from "./scheduler";
 
 describe("continuation tests", () => {
   it("should execute a single callable immediately", async () => {
@@ -226,7 +226,7 @@ describe("scheduler tests", () => {
     const process = async (id: string): Promise<string> => {
       await new Promise((r) => setTimeout(r, Math.random() * 25));
       results.push(id);
-      return id + " done";
+      return `${id} done`;
     };
 
     const scheduledProcess = sequential(process);

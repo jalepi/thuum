@@ -1,7 +1,7 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
+import type { EventUnion } from "../types";
 import { emitter } from "./emitter";
 import { createSubject } from "./utils";
-import type { EventUnion } from "../types";
 
 describe("emitter (rxjs)", () => {
   it("should push a { name, value } object into the observer", () => {

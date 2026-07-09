@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, onTestFinished } from "bun:test";
+import { describe, expect, it, onTestFinished, vi } from "bun:test";
 import { createTransport } from "@thuum/transport";
-import type { FromRequestChannel, RequestSchema } from "./types";
 import { createChannel } from "./request-channel";
+import type { FromRequestChannel, RequestSchema } from "./types";
 import * as utils from "./utils";
 
 type TestRequestMap = {

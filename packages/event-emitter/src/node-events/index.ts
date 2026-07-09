@@ -1,4 +1,4 @@
 export type { EmitterSource } from "./emitter";
-export type { ListenerSource } from "./listener";
 export { emitter } from "./emitter";
+export type { ListenerSource } from "./listener";
 export { listener } from "./listener";

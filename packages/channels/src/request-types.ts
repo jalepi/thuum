@@ -1,4 +1,4 @@
-import { type Err, type Result, type Val } from "./result";
+import type { Err, Result, Val } from "./result";
 
 export type RequestMap = {
   [topic: string]: {

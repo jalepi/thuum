@@ -1,4 +1,4 @@
-import { describe, expect, vi, it, onTestFinished } from "bun:test";
+import { describe, expect, it, onTestFinished, vi } from "bun:test";
 import { waitFor } from "../../../test-helpers";
 import { createTransport, type TransportType } from "./transport-factory";
 
@@ -6,14 +6,15 @@ const types = ["window-custom-event"] as const satisfies TransportType[];
 const namespace = "test";
 
 describe("transport factory tests", () => {
-  it.each(["abc", "broadcast-message-event", "window-message-event"])(
-    "[%s] should create with invalid transport type throw error",
-    (type) => {
-      expect(() => {
-        createTransport({ type: type as unknown as "window-custom-event", namespace: "test" });
-      }).toThrow();
-    },
-  );
+  it.each([
+    "abc",
+    "broadcast-message-event",
+    "window-message-event",
+  ])("[%s] should create with invalid transport type throw error", (type) => {
+    expect(() => {
+      createTransport({ type: type as unknown as "window-custom-event", namespace: "test" });
+    }).toThrow();
+  });
 
   it.each(types)("[%s] should create transport", (type) => {
     const { receiver, sender } = createTransport({ type, namespace });

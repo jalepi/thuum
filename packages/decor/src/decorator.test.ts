@@ -63,7 +63,7 @@ describe("decorator tests", () => {
       spy(a, b, c);
     }
 
-    const modifyArgs = decorator((fn, a: number, b: string, c: boolean) => fn(a + 1, b + "1", !c));
+    const modifyArgs = decorator((fn, a: number, b: string, c: boolean) => fn(a + 1, `${b}1`, !c));
     const decorated = modifyArgs(test);
     decorated(1, "foo", true);
 

@@ -65,7 +65,7 @@ describe("decorator async tests", () => {
       return Promise.resolve();
     }
 
-    const modifyArgs = decorator(async (fn, a: number, b: string, c: boolean) => await fn(a + 1, b + "1", !c));
+    const modifyArgs = decorator(async (fn, a: number, b: string, c: boolean) => await fn(a + 1, `${b}1`, !c));
     const decorated = modifyArgs(test);
     await decorated(1, "foo", true);
 

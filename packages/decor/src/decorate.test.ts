@@ -62,7 +62,7 @@ describe("decorate tests", () => {
     }
 
     const decorated = decorate(test, (fn, a, b, c) => {
-      fn(a + 1, b + "1", !c);
+      fn(a + 1, `${b}1`, !c);
     });
     decorated(1, "foo", true);
 
@@ -222,7 +222,7 @@ describe("decorate async tests", () => {
     }
 
     const decorated = decorate(test, async (fn, a, b, c) => {
-      await fn(a + 1, b + "1", !c);
+      await fn(a + 1, `${b}1`, !c);
     });
     await decorated(1, "foo", true);
 

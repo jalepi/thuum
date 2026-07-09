@@ -1,5 +1,5 @@
-import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { afterEach, mock } from "bun:test";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
 // Register happy-dom globals (document, window, CustomEvent, etc.)
 GlobalRegistrator.register();
