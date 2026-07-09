@@ -1,6 +1,6 @@
 {
   "name": "@thuum/decor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Type-safe function decorator toolkit for aspect-oriented programming — build reusable, composable patterns for observability, resilience, and flow control in TypeScript",
   "keywords": [
     "decorator",
