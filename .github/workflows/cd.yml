@@ -36,23 +36,23 @@ jobs:
         run: bun run test:ci
 
       - name: Publish packages
-        run: bun run release
+        run: bun run release:pack
 
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v6
-      #   with:
-      #     node-version: "24"
-      #     registry-url: "https://registry.npmjs.org"
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
 
-      # - name: Publish packages to NPM
-      #   run: |
-      #     for tarball in *.tgz; do
-      #       if [ ! -f "$tarball" ]; then
-      #         continue
-      #       fi
+      - name: Publish packages to NPM
+        run: |
+          for tarball in *.tgz; do
+            if [ ! -f "$tarball" ]; then
+              continue
+            fi
 
-      #       echo "Publishing $tarball..."
-      #       if ! output=$(npm publish "$tarball" --access public 2>&1); then
-      #         echo "::warning::Failed to publish $tarball: $output"
-      #       fi
-      #     done
+            echo "Publishing $tarball..."
+            if ! output=$(npm publish "$tarball" --access public 2>&1); then
+              echo "::warning::Failed to publish $tarball: $output"
+            fi
+          done
