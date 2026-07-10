@@ -16,7 +16,47 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "a11y": {
+        "recommended": true
+      },
+      "complexity": {
+        "recommended": true,
+        "noUselessCatch": "warn",
+        "noUselessCatchBinding": "warn",
+        "noUselessConstructor": "error",
+        "noUselessContinue": "warn",
+        "noUselessLoneBlockStatements": "warn",
+        "noUselessRename": "warn",
+        "noUselessSwitchCase": "warn",
+        "noUselessTernary": "warn",
+        "noUselessThisAlias": "warn",
+        "noUselessTypeConstraint": "warn",
+        "noUselessUndefined": "warn",
+        "noUselessUndefinedInitialization": "warn"
+      },
+      "correctness": {
+        "recommended": true,
+        "useParseIntRadix": "warn"
+      },
+      "nursery": {
+        "recommended": true,
+        "noConditionalExpect": "warn",
+        "noFloatingPromises": "error",
+        "noIdenticalTestTitle": "warn",
+        "noMisusedPromises": "error",
+        "noMisleadingReturnType": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
+      "performance": {
+        "recommended": true
+      },
+      "style": {
+        "noEnum": "error",
+        "noUselessElse": "warn",
+        "useArrayLiterals": "error",
+        "useShorthandFunctionType": "warn"
+      }
     }
   },
   "javascript": {

@@ -428,7 +428,7 @@ describe("Flow Control", () => {
       let lastCall = 0;
       return decorator((fn, ...args: unknown[]) => {
         const now = Date.now();
-        if (now - lastCall < limitMs) return undefined;
+        if (now - lastCall < limitMs) return;
         lastCall = now;
         return fn(...args);
       });

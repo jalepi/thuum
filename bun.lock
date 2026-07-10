@@ -34,7 +34,7 @@
     },
     "packages/decor": {
       "name": "@thuum/decor",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "devDependencies": {
         "@types/bun": "catalog:dev",
         "tslib": "catalog:dev",
@@ -43,7 +43,7 @@
     },
     "packages/event-emitter": {
       "name": "@thuum/event-emitter",
-      "version": "0.0.1",
+      "version": "0.0.3",
       "devDependencies": {
         "tslib": "catalog:dev",
         "typescript": "catalog:dev",
@@ -59,7 +59,7 @@
     },
     "packages/piper": {
       "name": "@thuum/piper",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "devDependencies": {
         "tslib": "catalog:dev",
         "typescript": "catalog:dev",

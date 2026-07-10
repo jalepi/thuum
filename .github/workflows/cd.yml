@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: bun run test:ci
 
-      - name: Pack packages
+      - name: Publish packages
         run: bun run release:pack
 
       - name: Setup Node.js

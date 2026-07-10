@@ -35,9 +35,8 @@ describe("transform tests", () => {
     const unsafe = (n: number) => {
       if (n > 0) {
         return "nice";
-      } else {
-        throw new Error();
       }
+      throw new Error();
     };
 
     expect(() => unsafe(1)).not.toThrowError();
@@ -90,11 +89,7 @@ describe("transform async tests", () => {
 
   it("should transform async function into safe version", async () => {
     const unsafe = async (n: number) => {
-      if (n > 0) {
-        return await Promise.resolve("nice");
-      } else {
-        return await Promise.reject(new Error());
-      }
+      return n > 0 ? await Promise.resolve("nice") : await Promise.reject(new Error());
     };
 
     expect(unsafe(1)).resolves.toBe("nice");
