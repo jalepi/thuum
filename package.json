@@ -5,8 +5,8 @@
   "scripts": {
     "build": "bun --verbose --filter '*' build",
     "build:ci": "bun run build && bun run lint",
-    "lint": "bunx --bund @biomejs/biome check",
-    "lint:fix": "bunx --bund @biomejs/biome check --write",
+    "lint": "bunx --bun @biomejs/biome check --error-on-warnings",
+    "lint:fix": "bunx --bun @biomejs/biome check --write",
     "test": "bun test packages",
     "test:watch": "bun test packages --watch",
     "test:ci": "bun test packages --reporter=junit --reporter-outfile=./test-results/junit.xml --coverage",
